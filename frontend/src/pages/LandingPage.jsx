@@ -162,28 +162,6 @@ const Hero = () => (
         Live demo line: <span className="text-white/75 font-medium">{PHONE_DISPLAY}</span>
       </div>
     </div>
-
-    {/* Bottom trust marquee */}
-    <div className="relative mt-24 border-y border-white/10 bg-black/40 overflow-hidden">
-      <div className="marquee-track py-5 text-white/40 text-xs sm:text-sm tracking-[0.2em] uppercase font-medium">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-12 px-6 shrink-0">
-            <span>Answers 24/7</span>
-            <span className="text-white/15">/</span>
-            <span>Books Appointments</span>
-            <span className="text-white/15">/</span>
-            <span>Captures Leads</span>
-            <span className="text-white/15">/</span>
-            <span>Transfers Live Calls</span>
-            <span className="text-white/15">/</span>
-            <span>Speaks Your Brand</span>
-            <span className="text-white/15">/</span>
-            <span>No More Voicemail</span>
-            <span className="text-white/15">/</span>
-          </div>
-        ))}
-      </div>
-    </div>
   </section>
 );
 
