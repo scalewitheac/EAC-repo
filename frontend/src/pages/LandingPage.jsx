@@ -86,7 +86,7 @@ const Hero = () => (
   <section
     id="top"
     data-testid="hero-section"
-    className="relative overflow-hidden pt-36 pb-28 sm:pt-44 sm:pb-36 noise"
+    className="relative overflow-hidden pt-32 pb-12 sm:pt-40 sm:pb-16 noise"
   >
     {/* Grid background */}
     <div className="absolute inset-0 grid-bg opacity-60" aria-hidden="true" />
@@ -186,7 +186,7 @@ const StatCard = ({ value, label, testid, accent = true }) => (
 const Stats = () => (
   <section
     data-testid="stats-section"
-    className="relative py-24 sm:py-32 border-t border-white/10"
+    className="relative py-16 sm:py-20 border-t border-white/10"
   >
     <div className="absolute inset-0 grid-bg opacity-30" aria-hidden="true" />
 
