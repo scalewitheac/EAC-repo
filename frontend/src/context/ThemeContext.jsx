@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 const THEMES = ["theme-cyber-magenta", "theme-cyber-cyan", "theme-cyber-lime", "theme-cyber-violet"];
 const ThemeContext = createContext(null);
@@ -10,19 +10,11 @@ export const ThemeProvider = ({ children }) => {
     return "theme-cyber-magenta";
   });
 
-  useEffect(() => {
-    const root = document.documentElement;
-    // remove any previous theme classes (including legacy names)
-    Array.from(root.classList)
-      .filter((c) => c.startsWith("theme-"))
-      .forEach((c) => root.classList.remove(c));
-    root.classList.add(theme);
-    localStorage.setItem("journal-theme", theme);
-  }, [theme]);
-
   const cycleTheme = () => {
     const i = THEMES.indexOf(theme);
-    setTheme(THEMES[(i + 1) % THEMES.length]);
+    const next = THEMES[(i + 1) % THEMES.length];
+    setTheme(next);
+    localStorage.setItem("journal-theme", next);
   };
 
   return (

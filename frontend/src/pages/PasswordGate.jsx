@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import StarField from "../components/StarField";
 import LightSwitch from "../components/LightSwitch";
 
@@ -9,6 +10,7 @@ const PasswordGate = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { verifySitePassword } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const submit = async (e) => {
@@ -26,7 +28,7 @@ const PasswordGate = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden" style={{ background: "#04030a" }}>
+    <div className={`password-gate ${theme} min-h-screen w-full relative overflow-hidden`} style={{ background: "#04030a" }}>
       {/* Deep night gradient */}
       <div
         className="absolute inset-0"
