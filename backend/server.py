@@ -1,72 +1,462 @@
-from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
-
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
+import os
+import uuid
+import logging
+import requests
+from datetime import datetime, timezone, timedelta
+from typing import List, Optional
+
+import bcrypt
+import jwt
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Request, Response, Header, Query
+from fastapi.responses import StreamingResponse
+from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel, Field, EmailStr
+import io
+
+# -------------------- Setup --------------------
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+JWT_SECRET = os.environ['JWT_SECRET']
+JWT_ALGORITHM = "HS256"
+SITE_PASSWORD = os.environ.get('SITE_PASSWORD', 'pass')
+ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
+ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
+APP_NAME = os.environ.get('APP_NAME', 'creative-journal')
+EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
+STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
 
-# Create a router with the /api prefix
+app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+# -------------------- Object storage --------------------
+storage_key = None
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+def init_storage():
+    global storage_key
+    if storage_key:
+        return storage_key
+    if not EMERGENT_KEY:
+        logger.warning("EMERGENT_LLM_KEY not set — storage disabled")
+        return None
+    try:
+        resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
+        resp.raise_for_status()
+        storage_key = resp.json()["storage_key"]
+        return storage_key
+    except Exception as e:
+        logger.error(f"Storage init failed: {e}")
+        return None
 
-# Add your routes to the router instead of directly to app
+def put_object(path: str, data: bytes, content_type: str) -> dict:
+    key = init_storage()
+    if not key:
+        raise HTTPException(status_code=500, detail="Storage not available")
+    resp = requests.put(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key, "Content-Type": content_type},
+        data=data, timeout=120
+    )
+    if resp.status_code == 403:
+        # try reinit
+        global storage_key
+        storage_key = None
+        key = init_storage()
+        resp = requests.put(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key, "Content-Type": content_type},
+            data=data, timeout=120
+        )
+    resp.raise_for_status()
+    return resp.json()
+
+def get_object(path: str):
+    key = init_storage()
+    if not key:
+        raise HTTPException(status_code=500, detail="Storage not available")
+    resp = requests.get(
+        f"{STORAGE_URL}/objects/{path}",
+        headers={"X-Storage-Key": key}, timeout=60
+    )
+    if resp.status_code == 403:
+        global storage_key
+        storage_key = None
+        key = init_storage()
+        resp = requests.get(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key}, timeout=60
+        )
+    resp.raise_for_status()
+    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+
+# -------------------- Auth helpers --------------------
+def hash_password(password: str) -> str:
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
+def verify_password(plain: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception:
+        return False
+
+def create_access_token(user_id: str, email: str) -> str:
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(days=7),
+        "type": "access",
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+async def get_current_admin(authorization: Optional[str] = Header(None)) -> dict:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    token = authorization[7:]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    return user
+
+# -------------------- Models --------------------
+class SitePasswordIn(BaseModel):
+    password: str
+
+class LoginIn(BaseModel):
+    email: str
+    password: str
+
+class DrawingIn(BaseModel):
+    title: str
+    date: str  # MM/DD/YYYY
+    image_path: str  # storage path or external URL
+    tags: List[str] = []
+    description: Optional[str] = ""
+
+class WritingIn(BaseModel):
+    title: str
+    date: str
+    content: str
+    tags: List[str] = []
+
+class VideoIn(BaseModel):
+    title: str
+    date: str
+    video_path: Optional[str] = None  # storage path
+    external_url: Optional[str] = None  # youtube/vimeo/tiktok
+    thumbnail_path: Optional[str] = None
+    tags: List[str] = []
+    description: Optional[str] = ""
+
+class MessageIn(BaseModel):
+    name: str
+    email: str
+    website: Optional[str] = ""
+    found_via: Optional[str] = ""
+    sender_descriptor: Optional[str] = ""
+    message: str
+
+# -------------------- Routes --------------------
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Creative Journal API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
+@api_router.post("/site/verify-password")
+async def verify_site_password(body: SitePasswordIn):
+    if body.password == SITE_PASSWORD:
+        return {"ok": True}
+    raise HTTPException(status_code=401, detail="Incorrect password")
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
+@api_router.post("/auth/login")
+async def login(body: LoginIn):
+    email = body.email.strip().lower()
+    user = await db.users.find_one({"email": email})
+    if not user or not verify_password(body.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token(user["id"], user["email"])
+    return {"token": token, "user": {"id": user["id"], "email": user["email"], "name": user.get("name"), "role": user.get("role")}}
 
-# Include the router in the main app
+@api_router.get("/auth/me")
+async def auth_me(admin: dict = Depends(get_current_admin)):
+    return admin
+
+@api_router.post("/auth/logout")
+async def auth_logout(admin: dict = Depends(get_current_admin)):
+    return {"ok": True}
+
+# Drawings
+@api_router.get("/drawings")
+async def list_drawings():
+    items = await db.drawings.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return items
+
+@api_router.post("/drawings")
+async def create_drawing(body: DrawingIn, admin: dict = Depends(get_current_admin)):
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.drawings.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.delete("/drawings/{drawing_id}")
+async def delete_drawing(drawing_id: str, admin: dict = Depends(get_current_admin)):
+    r = await db.drawings.delete_one({"id": drawing_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"ok": True}
+
+# Writings
+@api_router.get("/writings")
+async def list_writings():
+    items = await db.writings.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return items
+
+@api_router.post("/writings")
+async def create_writing(body: WritingIn, admin: dict = Depends(get_current_admin)):
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.writings.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.delete("/writings/{writing_id}")
+async def delete_writing(writing_id: str, admin: dict = Depends(get_current_admin)):
+    r = await db.writings.delete_one({"id": writing_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"ok": True}
+
+# Videos
+@api_router.get("/videos")
+async def list_videos():
+    items = await db.videos.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return items
+
+@api_router.post("/videos")
+async def create_video(body: VideoIn, admin: dict = Depends(get_current_admin)):
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.videos.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.delete("/videos/{video_id}")
+async def delete_video(video_id: str, admin: dict = Depends(get_current_admin)):
+    r = await db.videos.delete_one({"id": video_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"ok": True}
+
+# Messages
+@api_router.get("/messages")
+async def list_messages(all: bool = False, authorization: Optional[str] = Header(None)):
+    if all:
+        # admin only
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        try:
+            payload = jwt.decode(authorization[7:], JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            user = await db.users.find_one({"id": payload["sub"]})
+            if not user or user.get("role") != "admin":
+                raise HTTPException(status_code=403, detail="Admin only")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        items = await db.messages.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    else:
+        items = await db.messages.find({"approved": True}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return items
+
+@api_router.post("/messages")
+async def create_message(body: MessageIn):
+    doc = body.model_dump()
+    doc["id"] = str(uuid.uuid4())
+    doc["approved"] = False
+    doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    await db.messages.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.patch("/messages/{message_id}/approve")
+async def approve_message(message_id: str, admin: dict = Depends(get_current_admin)):
+    r = await db.messages.update_one({"id": message_id}, {"$set": {"approved": True}})
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"ok": True}
+
+@api_router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, admin: dict = Depends(get_current_admin)):
+    r = await db.messages.delete_one({"id": message_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"ok": True}
+
+# Upload
+@api_router.post("/upload")
+async def upload_file(file: UploadFile = File(...), admin: dict = Depends(get_current_admin)):
+    ext = file.filename.split(".")[-1].lower() if "." in file.filename else "bin"
+    file_id = str(uuid.uuid4())
+    path = f"{APP_NAME}/uploads/{file_id}.{ext}"
+    data = await file.read()
+    content_type = file.content_type or "application/octet-stream"
+    result = put_object(path, data, content_type)
+    await db.files.insert_one({
+        "id": file_id,
+        "storage_path": result["path"],
+        "original_filename": file.filename,
+        "content_type": content_type,
+        "size": result.get("size", len(data)),
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"id": file_id, "storage_path": result["path"], "content_type": content_type}
+
+# File serving — public (we already gate the whole site with the password screen)
+@api_router.get("/files/{path:path}")
+async def download_file(path: str):
+    record = await db.files.find_one({"storage_path": path, "is_deleted": False})
+    if not record:
+        # Allow direct fetches for known prefix anyway
+        if not path.startswith(f"{APP_NAME}/"):
+            raise HTTPException(status_code=404, detail="File not found")
+    data, content_type = get_object(path)
+    record_ct = record.get("content_type", content_type) if record else content_type
+    return StreamingResponse(io.BytesIO(data), media_type=record_ct)
+
+# -------------------- Seed & startup --------------------
+async def seed_admin():
+    existing = await db.users.find_one({"email": ADMIN_EMAIL})
+    if not existing:
+        await db.users.insert_one({
+            "id": str(uuid.uuid4()),
+            "email": ADMIN_EMAIL,
+            "password_hash": hash_password(ADMIN_PASSWORD),
+            "name": "Admin",
+            "role": "admin",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info(f"Seeded admin {ADMIN_EMAIL}")
+    elif not verify_password(ADMIN_PASSWORD, existing["password_hash"]):
+        await db.users.update_one({"email": ADMIN_EMAIL}, {"$set": {"password_hash": hash_password(ADMIN_PASSWORD)}})
+        logger.info("Updated admin password from env")
+
+async def seed_sample_content():
+    # Only seed if collections are empty
+    count = await db.drawings.count_documents({})
+    if count > 0:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    drawings = [
+        {
+            "id": str(uuid.uuid4()),
+            "title": "moon-rabbit",
+            "date": "02/14/2026",
+            "image_path": "https://images.unsplash.com/photo-1593472807861-5bb884af28f6?crop=entropy&cs=srgb&fm=jpg&w=1200",
+            "tags": ["sketch", "portrait"],
+            "description": "Pencil study, late night.",
+            "created_at": now,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "study-001",
+            "date": "01/28/2026",
+            "image_path": "https://images.pexels.com/photos/10474406/pexels-photo-10474406.jpeg?auto=compress&cs=tinysrgb&w=1200",
+            "tags": ["character", "study"],
+            "description": "Character notes.",
+            "created_at": now,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "doodle-pile",
+            "date": "01/05/2026",
+            "image_path": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?crop=entropy&cs=srgb&fm=jpg&w=1200",
+            "tags": ["doodle", "ink"],
+            "description": "Margin doodles from chemistry.",
+            "created_at": now,
+        },
+    ]
+    await db.drawings.insert_many(drawings)
+
+    writings = [
+        {
+            "id": str(uuid.uuid4()),
+            "title": "newsletter — winter notes",
+            "date": "02/01/2026",
+            "content": "Hi. It's been a strange month. I've been drawing more rabbits than usual.\n\nSome of this site is meant to be soft. Some of it is meant to be a vent. I'm not really separating the two anymore.\n\nI'm trying to write more like I talk. That's all.",
+            "tags": ["newsletter"],
+            "created_at": now,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "small notice",
+            "date": "01/12/2026",
+            "content": "Closing commissions for a bit. I'll post here when I open them again.",
+            "tags": ["notice"],
+            "created_at": now,
+        },
+    ]
+    await db.writings.insert_many(writings)
+
+    videos = [
+        {
+            "id": str(uuid.uuid4()),
+            "title": "timelapse-rabbit",
+            "date": "02/10/2026",
+            "video_path": None,
+            "external_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            "thumbnail_path": "https://images.unsplash.com/photo-1732995761914-d90f46d9d4a5?crop=entropy&cs=srgb&fm=jpg&w=800",
+            "tags": ["timelapse"],
+            "description": "Quick sketch timelapse.",
+            "created_at": now,
+        },
+    ]
+    await db.videos.insert_many(videos)
+
+    messages = [
+        {
+            "id": str(uuid.uuid4()),
+            "name": "anon",
+            "email": "anon@example.com",
+            "website": "",
+            "found_via": "stumbled in",
+            "sender_descriptor": "a stranger with a kind map",
+            "message": "your work makes me feel like I'm in middle school again in the best way",
+            "approved": True,
+            "created_at": now,
+        },
+    ]
+    await db.messages.insert_many(messages)
+    logger.info("Seeded sample content")
+
+@app.on_event("startup")
+async def on_startup():
+    await db.users.create_index("email", unique=True)
+    await db.drawings.create_index("created_at")
+    await db.writings.create_index("created_at")
+    await db.videos.create_index("created_at")
+    await db.messages.create_index("created_at")
+    await seed_admin()
+    await seed_sample_content()
+    init_storage()
+
 app.include_router(api_router)
 
 app.add_middleware(
@@ -76,13 +466,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

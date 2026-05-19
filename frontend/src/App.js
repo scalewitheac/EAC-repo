@@ -1,52 +1,84 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Toaster } from "sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+import "./App.css";
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
+import PasswordGate from "./pages/PasswordGate";
+import Disclaimer from "./pages/Disclaimer";
+import Hub from "./pages/Hub";
+import Drawings from "./pages/Drawings";
+import Writings from "./pages/Writings";
+import Videos from "./pages/Videos";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import AdminLogin from "./pages/AdminLogin";
+import AdminPanel from "./pages/AdminPanel";
+
+import { RibbonBookmark, TopNav } from "./components/notebook/NotebookShell";
+
+const RequireSiteAccess = ({ children, needDisclaimer = true }) => {
+  const { siteUnlocked, disclaimerAccepted } = useAuth();
+  const location = useLocation();
+  if (!siteUnlocked) return <Navigate to="/" replace state={{ from: location }} />;
+  if (needDisclaimer && !disclaimerAccepted) return <Navigate to="/disclaimer" replace />;
+  return children;
+};
+
+const Layout = () => {
+  // disable global right-click for art protection
   useEffect(() => {
-    helloWorldApi();
+    const onCtx = (e) => {
+      const t = e.target;
+      if (t && (t.tagName === "IMG" || t.tagName === "VIDEO")) e.preventDefault();
+    };
+    document.addEventListener("contextmenu", onCtx);
+    return () => document.removeEventListener("contextmenu", onCtx);
   }, []);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
+    <>
+      <TopNav />
+      <RibbonBookmark />
+    </>
   );
 };
+
+function AppShell() {
+  return (
+    <BrowserRouter>
+      <Layout />
+      <Routes>
+        <Route path="/" element={<PasswordGate />} />
+        <Route path="/disclaimer" element={
+          <RequireSiteAccess needDisclaimer={false}><Disclaimer /></RequireSiteAccess>
+        } />
+        <Route path="/home" element={<RequireSiteAccess><Hub /></RequireSiteAccess>} />
+        <Route path="/drawings" element={<RequireSiteAccess><Drawings /></RequireSiteAccess>} />
+        <Route path="/writings" element={<RequireSiteAccess><Writings /></RequireSiteAccess>} />
+        <Route path="/videos" element={<RequireSiteAccess><Videos /></RequireSiteAccess>} />
+        <Route path="/about" element={<RequireSiteAccess><About /></RequireSiteAccess>} />
+        <Route path="/contact" element={<RequireSiteAccess><Contact /></RequireSiteAccess>} />
+        <Route path="/admin/login" element={<RequireSiteAccess><AdminLogin /></RequireSiteAccess>} />
+        <Route path="/admin" element={<RequireSiteAccess><AdminPanel /></RequireSiteAccess>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster position="bottom-center" toastOptions={{ className: "font-hand" }} />
+    </BrowserRouter>
+  );
+}
 
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
+      </ThemeProvider>
     </div>
   );
 }
