@@ -1,0 +1,144 @@
+{
+  "theme": "LIGHT",
+  "archetype": "3 (Pastel & Soft) modified for Hand-Drawn Notebook",
+  "fonts": {
+    "heading": "Kalam",
+    "body": "Kalam",
+    "picochat": "VT323",
+    "google_fonts_url": "https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=VT323&display=swap"
+  },
+  "colors": {
+    "themes": {
+      "cream": {
+        "--bg-color": "#fdfbf7",
+        "--line-color": "#b3d4fc",
+        "--margin-color": "#ffb3b3",
+        "--ink-color": "#2c3032",
+        "--sticky-bg": "#fff7a8",
+        "--paper-grain": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+      },
+      "pink": {
+        "--bg-color": "#ffebf0",
+        "--line-color": "#ffb3c6",
+        "--margin-color": "#ff80a0",
+        "--ink-color": "#5a3040",
+        "--sticky-bg": "#ffd1dc",
+        "--paper-grain": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+      },
+      "mint": {
+        "--bg-color": "#e8f7f2",
+        "--line-color": "#a3e4d7",
+        "--margin-color": "#76d7c4",
+        "--ink-color": "#2e4039",
+        "--sticky-bg": "#d1f2eb",
+        "--paper-grain": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+      },
+      "lavender": {
+        "--bg-color": "#f4eef9",
+        "--line-color": "#d7bde2",
+        "--margin-color": "#c39bd3",
+        "--ink-color": "#3d2b45",
+        "--sticky-bg": "#ebd9f4",
+        "--paper-grain": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
+      }
+    }
+  },
+  "layout_patterns": {
+    "page_structure": "A centered max-w-6xl flex container (column on mobile, row on md+). The background should use the CSS variables: background-color: var(--bg-color), background-image: var(--paper-grain).",
+    "ruled_lines": "CSS linear-gradient overlay to create horizontal repeating lines (var(--line-color)) and a vertical left margin line (var(--margin-color)).",
+    "spiral_binding": "A visual divider in the center of the two-page spread, created with absolute positioned circles or CSS gradients to mimic notebook spirals. Should be hidden on mobile (which stacks).",
+    "ripped_sticky_note": "A container with background-color: var(--sticky-bg), padding, slight rotation (-1deg to 2deg). Should use a jagged clip-path or an SVG jagged edge at the bottom to simulate a ripped effect. Box shadow: a slight dark blur to give it depth off the page.",
+    "picochat_ui": "UI elements nested ON TOP of the sticky notes or paper. Characterized by thick, imperfect black/ink borders (2px solid var(--ink-color)), square or slightly rounded corners, and the VT323 pixel font for small headers/bars. It should look like someone 'drew' a digital UI.",
+    "tape": "Semi-transparent white/gray rectangles with rotation positioned at corners of sticky notes or images to simulate scotch tape.",
+    "bunny_ear_corner": "Bottom right corner of the right page should have a CSS folded corner effect (using linear gradients) acting as a 'Next Page' or turn icon."
+  },
+  "components": {
+    "password_gate": {
+      "layout": "Full screen background image of messy desk notebook. Overlay is a ripped sticky note in the center.",
+      "elements": [
+        "Password input inside the sticky note.",
+        "A small light-switch circle icon in the bottom right corner. Clicking this cycles the document.documentElement class between theme-cream, theme-pink, theme-mint, theme-lavender.",
+        "The light switch must vanish once authenticated."
+      ]
+    },
+    "disclaimer_page": {
+      "layout": "Centered layout on the lined notebook theme.",
+      "elements": [
+        "Exact text provided in the prompt.",
+        "Clickable image button using the provided 'I Understand' cartoon character URL."
+      ]
+    },
+    "hub_navigation": {
+      "layout": "Drawn as doodles or large text links scattered on the left notebook page.",
+      "style": "Hand-drawn arrows, scribbles, and Kalam font."
+    },
+    "drawings_gallery": {
+      "left_page": "Sticky note or taped image displaying the currently selected drawing (large).",
+      "right_page": "Scrollable list of ripped sticky-note thumbnails. Has a search bar (drawn style) for tag/date/title.",
+      "interaction": "Clicking a thumbnail updates the left page. Right-click MUST be disabled on the images (onContextMenu={e => e.preventDefault()})."
+    },
+    "videos_gallery": {
+      "layout": "Sticky-note thumbnails for videos.",
+      "interaction": "Clicking opens a lightbox video player. Player must have hand-drawn UI controls for CC/play/pause/speed/skip/loop."
+    },
+    "writings_page": {
+      "layout": "Blog-style entries with date/title, formatted like a two-page spread text document."
+    },
+    "about_page": {
+      "elements": [
+        "Artist image (taped to page).",
+        "150-word bio.",
+        "5 social slots. Empty ones show 'erased graphite pencil' placeholder styling (low opacity, smudged look)."
+      ]
+    },
+    "contact_page": {
+      "left_page": "Approved messages board (like a guestbook of sticky notes).",
+      "right_page": "Submission form with hand-drawn input fields. Required: Name, Email, Website, How did you find this, and the 'Map' joke question."
+    },
+    "bookmark_ribbon": {
+      "layout": "Persistent visual element (absolute position, hanging from top right or center) linking to the About page."
+    }
+  },
+  "typography": {
+    "h1": "font-kalam text-5xl md:text-6xl text-[var(--ink-color)] leading-tight tracking-tight",
+    "h2": "font-kalam text-3xl md:text-4xl text-[var(--ink-color)]",
+    "p": "font-kalam text-lg md:text-xl text-[var(--ink-color)] leading-relaxed",
+    "ui_label": "font-picochat text-base md:text-lg text-[var(--ink-color)] uppercase tracking-widest"
+  },
+  "image_urls": {
+    "password_bg": {
+      "url": "https://images.pexels.com/photos/5185078/pexels-photo-5185078.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      "description": "Messy creative workspace with open notebook on desk (background)"
+    },
+    "disclaimer_btn": {
+      "url": "https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/d78e9qjc_Untitled%20design%20%282%29.png",
+      "description": "I Understand cartoon character button"
+    },
+    "sample_art_1": {
+      "url": "https://images.unsplash.com/photo-1593472807861-5bb884af28f6?crop=entropy&cs=srgb&fm=jpg&w=800",
+      "description": "Woman face sketch"
+    },
+    "sample_art_2": {
+      "url": "https://images.pexels.com/photos/10474406/pexels-photo-10474406.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "description": "Character sketch presentation"
+    },
+    "sample_video_thumb": {
+      "url": "https://images.unsplash.com/photo-1732995761914-d90f46d9d4a5?crop=entropy&cs=srgb&fm=jpg&w=400",
+      "description": "Abstract graphite video thumbnail placeholder"
+    },
+    "artist_avatar": {
+      "url": "https://images.pexels.com/photos/29861519/pexels-photo-29861519.jpeg?auto=compress&cs=tinysrgb&w=800",
+      "description": "Artist sketching portrait"
+    }
+  },
+  "instructions_to_main_agent": [
+    "DO NOT USE SHADCN COMPONENTS for this site, as the prompt specifies to avoid clean SaaS looks. Build raw HTML/Tailwind components that mimic drawn elements.",
+    "Add 'data-testid' to all interactive elements.",
+    "Inject the Google Fonts for Kalam and VT323 into index.html.",
+    "Set up a ThemeProvider context in React that applies 'theme-cream', 'theme-pink', 'theme-mint', or 'theme-lavender' classes to the document body or main container.",
+    "Define the CSS variables for the themes in index.css as :root, .theme-pink, .theme-mint, .theme-lavender.",
+    "For the ruled lines, use a repeating-linear-gradient in CSS on the page container, e.g., background-image: repeating-linear-gradient(transparent, transparent 31px, var(--line-color) 31px, var(--line-color) 32px). Add a left margin border for the pink margin line.",
+    "Ensure right-click is disabled on drawings via onContextMenu={e => e.preventDefault()}.",
+    "Do not use generic gray/purple gradients. Everything must feel like paper, graphite, ink, or sticky notes."
+  ]
+}
