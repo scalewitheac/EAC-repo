@@ -1,0 +1,85 @@
+{
+  "theme": "Dark",
+  "archetype": "4 (Swiss & High-Contrast Dark Variant)",
+  "brand": {
+    "name": "Engage A.I.",
+    "vibe": "Bold, urgent, professional, modern tech"
+  },
+  "colors": {
+    "background": "#050505",
+    "surface": "#0A0A0A",
+    "surface_elevated": "#121212",
+    "primary": "#FF3333",
+    "primary_hover": "#E62E2E",
+    "text_main": "#FFFFFF",
+    "text_muted": "#A3A3A3",
+    "border": "rgba(255, 255, 255, 0.1)"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Manrope",
+    "strategy": "Massive, tight-tracking headings to create authority. Clean, highly legible body text."
+  },
+  "layout": {
+    "spacing_scale": "Generous spacing (py-24 to py-32 for sections)",
+    "grid": "Bento-style grids for features with 1px borders and no soft shadows. Use sharp or slightly rounded corners (rounded-xl)."
+  },
+  "sections": [
+    {
+      "name": "Header",
+      "requirements": "Minimal header with 'Engage A.I.' logo/text on the left, and a small 'Book Demo' button on the right. Must be fixed/sticky with a glassmorphism effect (backdrop-blur-md bg-black/50) and a 1px bottom border."
+    },
+    {
+      "name": "Hero",
+      "requirements": "Centered layout with a massive H1 (text-5xl to text-6xl+ tracking-tighter) and a concise subheadline. Dual CTAs side-by-side. 'Call Demo Agent' should be the primary button (Solid Red). 'Book a Call' should be secondary (Outline or subtle white/gray). Background should have a subtle dark texture and a faint red glow behind the text.",
+      "ctas": [
+        {
+          "text": "Call Demo Agent",
+          "url": "tel:+13022677749",
+          "style": "primary"
+        },
+        {
+          "text": "Book a Call",
+          "url": "https://cal.com/eacagencyco/engage-ai-demo",
+          "style": "secondary"
+        }
+      ]
+    },
+    {
+      "name": "Stats",
+      "requirements": "High-impact typography. Focus on the pain points: '62% of small business calls go unanswered' and '$75B lost annually'. Use large numbers in red, with white description text. Layout can be a 2-column grid. Use the dark texture image as a very faint background overlay."
+    },
+    {
+      "name": "Features Grid",
+      "requirements": "A 2x2 grid (or 1x4 on mobile) showing 4 features: Books appointments, Answers FAQs, Transfers calls, Captures leads. Dark cards (bg-[#0A0A0A]), 1px border (border-white/10). Include lucide-react icons in a primary-color tinted wrapper. Add a subtle hover effect (border color changes to red/30 or slight lift)."
+    },
+    {
+      "name": "Final CTA",
+      "requirements": "Centered block, very generous padding (py-32). Strong statement like 'Stop losing revenue to missed calls.' Repeat the two buttons identically to the Hero section."
+    }
+  ],
+  "media": {
+    "hero_background": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/115e820d-e306-489b-80bb-9118e4098383/images/0a9bd736fbd9fc64ba46a53dc166eba971a8131e2a361a794d549d7942920ebd.png",
+      "description": "Abstract glowing voice wave. Use as a masked overlay or hero background image with low opacity (10-20%)"
+    },
+    "stats_texture": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/115e820d-e306-489b-80bb-9118e4098383/images/993ddfaba0554b67c422eb0dbf8fd1cfecf8ec1f274efd8a2938402d204eb34a.png",
+      "description": "Subtle dark grit texture. Use in the Stats section background."
+    },
+    "features_abstract": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/115e820d-e306-489b-80bb-9118e4098383/images/67d80d0028c15ce1eda7ac82f9da5756230496064639079fab25ff2d0316c497.png",
+      "description": "Abstract glowing sphere. Use as an accent image in the features section or final CTA."
+    },
+    "photo_office": {
+      "url": "https://images.unsplash.com/photo-1758876204300-7adfdec6579f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1Mjh8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBzbWFydHBob25lJTIwZGVzayUyMGRhcmt8ZW58MHx8fHwxNzc5MjI2MzI5fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Man talking on phone at desk. Can be used in stats section if a human element is needed."
+    }
+  },
+  "technical_instructions": {
+    "styling": "Use pure Tailwind CSS. Use arbitrary values for exact colors if needed (e.g., bg-[#FF3333]). Add standard HTML structure for sections. Ensure text remains perfectly legible (high contrast).",
+    "animations": "Use framer-motion for simple fade-up on scroll for sections. Keep it professional and performant.",
+    "testing": "CRITICAL: All interactive and key informational elements MUST include a data-testid attribute. e.g., data-testid='hero-call-btn', data-testid='hero-book-btn', data-testid='stats-section'.",
+    "icons": "Use lucide-react for all icons."
+  }
+}
