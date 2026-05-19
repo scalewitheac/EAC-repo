@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 import StarField from "../components/StarField";
 
 const PasswordGate = () => {
@@ -9,7 +8,6 @@ const PasswordGate = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { verifySitePassword } = useAuth();
-  const { cycleTheme, theme } = useTheme();
   const navigate = useNavigate();
 
   const submit = async (e) => {
@@ -78,16 +76,6 @@ const PasswordGate = () => {
           </form>
         </div>
       </div>
-
-      {/* Light switch / theme cycle (only on password page) */}
-      <button
-        onClick={cycleTheme}
-        className="light-switch"
-        data-testid="theme-light-switch"
-        title={`current: ${theme.replace("theme-", "")}`}
-      >
-        ⏻
-      </button>
     </div>
   );
 };

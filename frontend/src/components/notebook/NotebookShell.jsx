@@ -79,9 +79,9 @@ export const TopNav = () => {
             data-testid="theme-cycle-btn"
             onClick={cycleTheme}
             className="pico-btn"
-            title={`theme: ${theme.replace("theme-", "")}`}
+            title={`theme: ${theme.replace("theme-cyber-", "")}`}
           >
-            {theme.replace("theme-", "")} ↻
+            ↻ {theme.replace("theme-cyber-", "")}
           </button>
           {admin ? (
             <>

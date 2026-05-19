@@ -1,16 +1,21 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-const THEMES = ["theme-cream", "theme-pink", "theme-mint", "theme-lavender"];
+const THEMES = ["theme-cyber-magenta", "theme-cyber-cyan", "theme-cyber-lime", "theme-cyber-violet"];
 const ThemeContext = createContext(null);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("journal-theme") || "theme-cream";
+    const saved = localStorage.getItem("journal-theme");
+    if (saved && THEMES.includes(saved)) return saved;
+    return "theme-cyber-magenta";
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    THEMES.forEach((t) => root.classList.remove(t));
+    // remove any previous theme classes (including legacy names)
+    Array.from(root.classList)
+      .filter((c) => c.startsWith("theme-"))
+      .forEach((c) => root.classList.remove(c));
     root.classList.add(theme);
     localStorage.setItem("journal-theme", theme);
   }, [theme]);
