@@ -63,6 +63,20 @@ const Disclaimer = () => {
               />
             </button>
           </div>
+
+          {/* Footer keepsake image */}
+          <div className="mt-16 flex flex-col items-center gap-3">
+            <div className="w-full max-w-md border-t-2 border-dashed border-[var(--ink-soft)] opacity-50" />
+            <p className="font-marker text-[var(--ink-soft)] text-sm">— a souvenir —</p>
+            <img
+              src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/93awav68_Untitled%20design%20%282%29.png"
+              alt="souvenir"
+              className="w-60 md:w-72 select-none opacity-90"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              data-testid="disclaimer-souvenir-img"
+            />
+          </div>
         </div>
       </div>
     </div>

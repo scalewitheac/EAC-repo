@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import StarField from "../components/StarField";
 
 const PasswordGate = () => {
   const [password, setPassword] = useState("");
@@ -26,20 +27,33 @@ const PasswordGate = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden" style={{ background: "#1a1a1a" }}>
-      {/* Notebook desk photo background */}
+    <div className="min-h-screen w-full relative overflow-hidden" style={{ background: "#06030d" }}>
+      {/* Deep night gradient */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 20% 10%, #2a0e4d 0%, #0a0418 45%, #04030c 100%)",
+        }}
+      />
+      {/* Notebook desk photo, dimmed underneath the stars */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.pexels.com/photos/5185078/pexels-photo-5185078.jpeg?auto=compress&cs=tinysrgb&w=1600')",
-          filter: "saturate(0.85) brightness(0.55) contrast(1.05)",
+          filter: "saturate(0.6) brightness(0.32) contrast(1.05) hue-rotate(-10deg)",
+          mixBlendMode: "luminosity",
+          opacity: 0.55,
         }}
       />
-      <div className="absolute inset-0" style={{ background: "rgba(15, 12, 8, 0.55)" }} />
+      <div className="absolute inset-0" style={{ background: "rgba(8, 4, 18, 0.45)" }} />
+
+      {/* Neon falling stars */}
+      <StarField shootingCount={16} dotCount={70} />
 
       {/* paper grain overlay */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none"
+      <div className="absolute inset-0 opacity-20 pointer-events-none"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
