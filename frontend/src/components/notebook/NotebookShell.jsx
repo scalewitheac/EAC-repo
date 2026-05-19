@@ -1,7 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
 
 export const RibbonBookmark = () => {
   const location = useLocation();
@@ -49,7 +48,6 @@ export const TopNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { admin, logout } = useAuth();
-  const { theme, cycleTheme } = useTheme();
 
   if (location.pathname === "/" || location.pathname === "/disclaimer") return null;
 
@@ -75,14 +73,6 @@ export const TopNav = () => {
           </Link>
         ))}
         <div className="ml-auto flex items-center gap-2">
-          <button
-            data-testid="theme-cycle-btn"
-            onClick={cycleTheme}
-            className="pico-btn"
-            title={`theme: ${theme.replace("theme-cyber-", "")}`}
-          >
-            ↻ {theme.replace("theme-cyber-", "")}
-          </button>
           {admin ? (
             <>
               <Link to="/admin" className="pico-btn tilt-r" data-testid="nav-admin-link">admin</Link>
