@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import * as sfx from "../lib/sfx";
 
 const MENU = [
   { to: "/drawings", label: "Drawings", sub: "doodles & multimedia" },
   { to: "/writings", label: "Writings", sub: "musings & notices" },
   { to: "/videos",   label: "Videos",   sub: "shorts & timelapses" },
-  { to: "/contact",  label: "Contact",  sub: "leave a message" },
+  { to: "/contact",  label: "Signals",  sub: "leave a transmission" },
 ];
 
 const SHELL_COLORS = [
@@ -32,51 +33,46 @@ const useClock = () => {
 const Hub = () => {
   const navigate = useNavigate();
   const clock = useClock();
+  const { admin } = useAuth();
   const [cursor, setCursor] = useState(0);
   const [booting, setBooting] = useState(true);
   const [shell, setShell] = useState(() => localStorage.getItem("device-shell") || "mauve");
   const [muted, setMutedState] = useState(() => localStorage.getItem("device-muted") === "1");
 
-  // Persist & apply
   useEffect(() => { localStorage.setItem("device-shell", shell); }, [shell]);
   useEffect(() => {
     sfx.setMuted(muted);
     localStorage.setItem("device-muted", muted ? "1" : "0");
   }, [muted]);
 
-  // Boot sequence — power-on tone fires after the screen-on animation completes
   useEffect(() => {
-    const t1 = setTimeout(() => {
-      sfx.unlockAudio();
-      sfx.boot();
-    }, 320);
+    const t1 = setTimeout(() => { sfx.unlockAudio(); sfx.boot(); }, 320);
     const t2 = setTimeout(() => setBooting(false), 750);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // Unlock audio on first user interaction (browsers gate WebAudio)
   useEffect(() => {
-    const onFirst = () => { sfx.unlockAudio(); window.removeEventListener("pointerdown", onFirst); window.removeEventListener("keydown", onFirst); };
+    const onFirst = () => { sfx.unlockAudio(); };
     window.addEventListener("pointerdown", onFirst, { once: true });
     window.addEventListener("keydown", onFirst, { once: true });
-    return () => { window.removeEventListener("pointerdown", onFirst); window.removeEventListener("keydown", onFirst); };
+    return () => {
+      window.removeEventListener("pointerdown", onFirst);
+      window.removeEventListener("keydown", onFirst);
+    };
   }, []);
 
   const moveCursor = (delta) => {
     setCursor((c) => {
-      const next = (c + delta + MENU.length) % MENU.length;
       sfx.blip();
-      return next;
+      return (c + delta + MENU.length) % MENU.length;
     });
   };
-  // For a 2x2 grid: up/down jumps 2, left/right jumps 1
   const dpadUp    = () => moveCursor(-2);
   const dpadDown  = () => moveCursor(2);
   const dpadLeft  = () => moveCursor(-1);
   const dpadRight = () => moveCursor(1);
   const enter = () => { sfx.select(); navigate(MENU[cursor].to); };
 
-  // Keyboard navigation
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "ArrowDown")  { e.preventDefault(); dpadDown(); }
@@ -92,22 +88,32 @@ const Hub = () => {
 
   return (
     <div className="retro-stage" data-testid="hub-device-stage">
-      <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="retro handheld console">
+      <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="dysthymic handheld console">
         {/* Header strip */}
         <div className="device-header">
           <span><span className="power-led" />power on</span>
           <button
             type="button"
             onClick={() => setMutedState((m) => !m)}
-            className="sound-toggle"
-            style={{ position: "static", border: "1px solid currentColor", background: "transparent" }}
+            style={{
+              fontFamily: "'VT323', monospace",
+              fontSize: "0.85rem",
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              padding: "3px 10px",
+              borderRadius: 999,
+              background: "transparent",
+              color: "inherit",
+              border: "1px solid currentColor",
+              cursor: "pointer",
+            }}
             data-testid="device-sound-toggle"
             aria-label="toggle sound"
             title={muted ? "sound off" : "sound on"}
           >
             ♪ {muted ? "off" : "on"}
           </button>
-          <span>daymond.note — v1.0</span>
+          <span>dysthymic — v1.0</span>
         </div>
 
         {/* Screen */}
@@ -116,12 +122,18 @@ const Hub = () => {
             <div className="crt-noise" />
 
             <div className="crt-statusbar">
-              <span>◉ logged in</span>
+              <span>
+                {admin ? (
+                  <span data-testid="operator-badge" style={{ color: "#9aff9a" }}>◉ operator</span>
+                ) : (
+                  <span>◉ drifter</span>
+                )}
+              </span>
               <span>{clock}</span>
             </div>
 
             <div className="crt-title">
-              ▒ notebook<span className="crt-blink">_</span>
+              ▒ dysthymic<span className="crt-blink">_</span>
             </div>
 
             {booting ? (
@@ -164,7 +176,7 @@ const Hub = () => {
           </div>
         </div>
 
-        {/* Controls row */}
+        {/* Controls row — D-pad / Start-Select / A-B */}
         <div className="controls">
           <div className="dpad" aria-label="d-pad">
             <button type="button" className="up"    onClick={dpadUp}    data-testid="dpad-up"    aria-label="up">▲</button>
@@ -175,40 +187,36 @@ const Hub = () => {
           </div>
 
           <div className="start-select">
-            <Link to="/about" className="pill-btn" data-testid="device-select-btn" onClick={() => sfx.click()}>select • about</Link>
+            <Link to="/about" className="pill-btn" data-testid="device-select-btn" onClick={() => sfx.click()}>select • origin</Link>
             <button type="button" className="pill-btn" data-testid="device-start-btn" onClick={enter}>
               start ▸
             </button>
           </div>
 
-          <div>
-            <div className="ab-buttons" aria-hidden="false">
-              <Link to="/contact"     className="ab-button" data-testid="device-a-btn" title="contact"      onClick={() => sfx.click()}>A</Link>
-              <Link to="/admin/login" className="ab-button" data-testid="device-b-btn" title="admin login"  onClick={() => sfx.click()}>B</Link>
-            </div>
-
-            {/* Color strips */}
-            <div className="color-strips" role="radiogroup" aria-label="device color">
-              {SHELL_COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  role="radio"
-                  aria-pressed={shell === c.id}
-                  aria-label={c.name}
-                  title={c.name}
-                  className={`color-strip color-strip-${c.id}`}
-                  data-testid={`device-color-${c.id}`}
-                  onClick={() => { setShell(c.id); sfx.click(); }}
-                />
-              ))}
-            </div>
+          <div className="ab-buttons" aria-hidden="false">
+            <Link to="/contact"     className="ab-button" data-testid="device-a-btn" title="signals"     onClick={() => sfx.click()}>A</Link>
+            <Link to="/admin/login" className="ab-button" data-testid="device-b-btn" title="operator"    onClick={() => sfx.click()}>B</Link>
           </div>
         </div>
 
-        {/* Speaker grill */}
-        <div className="speaker-grill" aria-hidden="true">
-          <span /><span /><span /><span />
+        {/* Color picker — its own row below controls */}
+        <div className="color-strips-row">
+          <span className="label">shell color</span>
+          <div className="color-strips" role="radiogroup" aria-label="device color">
+            {SHELL_COLORS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                role="radio"
+                aria-pressed={shell === c.id}
+                aria-label={c.name}
+                title={c.name}
+                className={`color-strip color-strip-${c.id}`}
+                data-testid={`device-color-${c.id}`}
+                onClick={() => { setShell(c.id); sfx.click(); }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

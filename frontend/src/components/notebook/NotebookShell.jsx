@@ -18,8 +18,8 @@ export const NotebookFrame = ({ children, leftPage, rightPage, single = false })
     <div className="crt-stage" data-testid="page-crt-stage">
       <div className="crt-monitor">
         <div className="crt-monitor-statusbar">
-          <span><span className="led" /> on air</span>
-          <span>daymond.note</span>
+          <span><span className="led" /> dysthymic</span>
+          <PageOperatorBadge />
         </div>
         <div className="crt-monitor-glass">
           <div className="w-full h-full overflow-auto notebook-scroll">
@@ -48,6 +48,18 @@ export const NotebookFrame = ({ children, leftPage, rightPage, single = false })
         </div>
       </div>
     </div>
+  );
+};
+
+// Small admin/visitor indicator shown in the CRT monitor statusbar
+const PageOperatorBadge = () => {
+  const { admin } = useAuth();
+  return admin ? (
+    <span data-testid="page-operator-badge" style={{ color: "#9aff9a" }}>
+      ◆ operator online
+    </span>
+  ) : (
+    <span style={{ color: "rgba(247, 214, 120, 0.75)" }}>◇ drifter mode</span>
   );
 };
 
