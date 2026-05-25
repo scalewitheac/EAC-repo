@@ -49,7 +49,7 @@ export const TopNav = () => {
   const navigate = useNavigate();
   const { admin, logout } = useAuth();
 
-  if (location.pathname === "/" || location.pathname === "/disclaimer") return null;
+  if (location.pathname === "/" || location.pathname === "/disclaimer" || location.pathname === "/home") return null;
 
   const items = [
     { to: "/home", label: "home" },

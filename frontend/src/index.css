@@ -218,7 +218,7 @@
 .ribbon {
   position: fixed;
   top: 0;
-  right: 32px;
+  left: 64px;
   width: 36px;
   height: 110px;
   background: var(--margin-color);
@@ -241,6 +241,23 @@
   text-orientation: mixed;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+/* ---------- Sticky-pad (perforated bottom — used on hub) ---------- */
+.sticky-pad {
+  background: var(--sticky-bg);
+  position: relative;
+  box-shadow: 4px 8px 14px var(--shadow), inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% 92%, 98% 100%, 96% 92%, 94% 100%, 92% 92%, 90% 100%, 88% 92%, 86% 100%, 84% 92%, 82% 100%, 80% 92%, 78% 100%, 76% 92%, 74% 100%, 72% 92%, 70% 100%, 68% 92%, 66% 100%, 64% 92%, 62% 100%, 60% 92%, 58% 100%, 56% 92%, 54% 100%, 52% 92%, 50% 100%, 48% 92%, 46% 100%, 44% 92%, 42% 100%, 40% 92%, 38% 100%, 36% 92%, 34% 100%, 32% 92%, 30% 100%, 28% 92%, 26% 100%, 24% 92%, 22% 100%, 20% 92%, 18% 100%, 16% 92%, 14% 100%, 12% 92%, 10% 100%, 8% 92%, 6% 100%, 4% 92%, 2% 100%, 0 92%
+  );
+}
+.sticky-pad:hover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-3px);
+  box-shadow: 4px 12px 22px var(--shadow);
 }
 
 /* tilt utility */
