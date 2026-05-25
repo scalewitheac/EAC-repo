@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export const RibbonBookmark = () => {
   const location = useLocation();
-  if (location.pathname === "/" || location.pathname === "/disclaimer") return null;
+  if (location.pathname === "/" || location.pathname === "/disclaimer" || location.pathname === "/home") return null;
   return (
     <Link to="/about" className="ribbon" data-testid="ribbon-bookmark-link" aria-label="About">
       <span className="ribbon-label">about</span>
@@ -13,7 +13,7 @@ export const RibbonBookmark = () => {
 };
 
 export const NotebookFrame = ({ children, leftPage, rightPage, single = false }) => {
-  // Two-page spread notebook frame. If single = true, renders a single page.
+  // Two-page spread notebook frame. Spiral binding removed for cleaner look.
   return (
     <div className="min-h-screen w-full py-8 px-4 relative" style={{ background: "var(--bg-deep)" }}>
       <div className="mx-auto max-w-6xl relative">
@@ -21,9 +21,6 @@ export const NotebookFrame = ({ children, leftPage, rightPage, single = false })
           className={`grid ${single ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"} bg-[var(--bg-color)] shadow-2xl relative`}
           style={{ minHeight: "78vh", boxShadow: "0 30px 60px -20px var(--shadow), 0 0 0 1px rgba(0,0,0,0.06)" }}
         >
-          {!single && (
-            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 -translate-x-1/2 w-10 spiral z-10" />
-          )}
           {single ? (
             <div className="paper paper-margin relative overflow-hidden">
               <div className="relative z-10 p-8 md:p-12 min-h-[78vh]">{children}</div>

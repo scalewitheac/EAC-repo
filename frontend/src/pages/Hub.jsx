@@ -1,85 +1,147 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { NotebookFrame } from "../components/notebook/NotebookShell";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-const IconCard = ({ children }) => (
-  <div className="relative w-14 h-16 md:w-16 md:h-20 flex-shrink-0" aria-hidden="true">
-    <div
-      className="absolute inset-0 bg-[var(--bg-color)] border-2 border-[var(--ink-color)]"
-      style={{ transform: "translate(3px, 4px)" }}
-    />
-    <div className="absolute inset-0 bg-[var(--bg-color)] border-2 border-[var(--ink-color)] flex items-center justify-center text-[var(--ink-color)]">
-      {children}
-    </div>
-  </div>
-);
-
-const BrushIcon = () => (
-  <svg viewBox="0 0 32 32" className="w-9 h-12" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 5 L28 11 L15 24 L9 18 Z" />
-    <path d="M9 18 L6 26 L3 29" />
-    <path d="M6 26 L11 24" />
-  </svg>
-);
-const DocIcon = () => (
-  <svg viewBox="0 0 32 32" className="w-8 h-11" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M7 4 H 20 L 26 10 V 28 H 7 Z" />
-    <path d="M20 4 V 10 H 26" />
-    <path d="M11 15 H 22" />
-    <path d="M11 19 H 22" />
-    <path d="M11 23 H 18" />
-  </svg>
-);
-const CamIcon = () => (
-  <svg viewBox="0 0 32 32" className="w-10 h-9" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="9" width="19" height="14" rx="1.5" />
-    <path d="M22 14 L29 9 V 23 L 22 18 Z" />
-  </svg>
-);
-const MailIcon = () => (
-  <svg viewBox="0 0 32 32" className="w-10 h-8" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="7" width="26" height="18" rx="1.5" />
-    <path d="M3 9 L 16 19 L 29 9" />
-  </svg>
-);
-
-const ITEMS = [
-  { to: "/drawings", title: "Drawings", caption: "doodles & multimedia", Icon: BrushIcon, color: "sticky-yellow", tilt: "-1.6deg" },
-  { to: "/writings", title: "Writings", caption: "musings & notices", Icon: DocIcon, color: "sticky-peach", tilt: "1.1deg" },
-  { to: "/videos", title: "Videos", caption: "tok-style & shorts", Icon: CamIcon, color: "sticky-mint", tilt: "-1.1deg" },
-  { to: "/contact", title: "Contact", caption: "leave a message", Icon: MailIcon, color: "sticky-sky", tilt: "1.4deg" },
+const MENU = [
+  { to: "/drawings", label: "Drawings", sub: "doodles & multimedia" },
+  { to: "/writings", label: "Writings", sub: "musings & notices" },
+  { to: "/videos",   label: "Videos",   sub: "shorts & timelapses" },
+  { to: "/contact",  label: "Contact",  sub: "leave a message" },
 ];
 
+const useClock = () => {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000 * 30);
+    return () => clearInterval(id);
+  }, []);
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+};
+
 const Hub = () => {
-  const content = (
-    <div className="relative w-full max-w-5xl mx-auto pt-4 pb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
-        {ITEMS.map(({ to, title, caption, Icon, color, tilt }) => (
-          <Link
-            key={to}
-            to={to}
-            data-testid={`hub-nav-${title.toLowerCase()}-link`}
-            className={`sticky-pad ${color} block group`}
-            style={{ "--tilt": tilt }}
-          >
-            <div className="flex items-center gap-5 px-6 py-7 md:px-8 md:py-8">
-              <IconCard><Icon /></IconCard>
-              <div className="flex-1">
-                <div className="font-marker text-3xl md:text-4xl text-[var(--ink-color)] leading-tight group-hover:underline">
-                  {title}
-                </div>
-                <div className="font-pixel uppercase tracking-widest text-xs md:text-sm text-[var(--ink-soft)] mt-1">
-                  ▸ {caption}
+  const navigate = useNavigate();
+  const clock = useClock();
+  const [cursor, setCursor] = useState(0);
+  const [booting, setBooting] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setBooting(false), 600);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Keyboard navigation for that nostalgic D-pad feel
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        setCursor((c) => (c + 1) % MENU.length);
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        setCursor((c) => (c - 1 + MENU.length) % MENU.length);
+      } else if (e.key === "Enter") {
+        navigate(MENU[cursor].to);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [cursor, navigate]);
+
+  return (
+    <div className="retro-stage" data-testid="hub-device-stage">
+      <div className="device" role="region" aria-label="retro handheld console">
+        {/* Header strip */}
+        <div className="device-header">
+          <span><span className="power-led" />power on</span>
+          <span>daymond.note — v1.0</span>
+        </div>
+
+        {/* Screen */}
+        <div className="screen-bezel">
+          <div className="crt-screen" data-testid="crt-screen">
+            <div className="crt-noise" />
+
+            <div className="crt-statusbar">
+              <span>◉ logged in</span>
+              <span>{clock}</span>
+            </div>
+
+            <div className="crt-title">
+              ▒ notebook<span className="crt-blink">_</span>
+            </div>
+
+            {booting ? (
+              <div style={{ position: "relative", zIndex: 4, textAlign: "center", padding: "40px 0" }}>
+                <div style={{ fontSize: "1.1rem", letterSpacing: "0.18em" }}>booting…</div>
+                <div style={{ marginTop: 14, color: "var(--crt-fg-dim)" }}>
+                  loading channels ░░░░░░░░░░
                 </div>
               </div>
+            ) : (
+              <div className="crt-grid">
+                {MENU.map((m, i) => (
+                  <Link
+                    key={m.to}
+                    to={m.to}
+                    data-testid={`hub-nav-${m.label.toLowerCase()}-link`}
+                    className="crt-card"
+                    onMouseEnter={() => setCursor(i)}
+                    onFocus={() => setCursor(i)}
+                    style={cursor === i ? {
+                      background: "rgba(247, 214, 120, 0.14)",
+                      boxShadow: "0 0 0 1px var(--crt-fg) inset, 0 0 16px var(--crt-glow)",
+                    } : undefined}
+                  >
+                    <div className="label">
+                      {cursor === i ? "▸ " : "  "}{m.label}
+                    </div>
+                    <div className="sub">{m.sub}</div>
+                    <span className="arrow">▶</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <div className="crt-footer">
+              <span>↕ select</span>
+              <span>↵ enter</span>
             </div>
-          </Link>
-        ))}
+          </div>
+        </div>
+
+        {/* Controls row */}
+        <div className="controls">
+          <div className="dpad" aria-hidden="true">
+            <span className="up" />
+            <span className="down" />
+            <span className="left" />
+            <span className="right" />
+            <span className="center" />
+          </div>
+
+          <div className="start-select">
+            <Link to="/about" className="pill-btn" data-testid="device-select-btn">select • about</Link>
+            <button
+              type="button"
+              className="pill-btn"
+              data-testid="device-start-btn"
+              onClick={() => navigate(MENU[cursor].to)}
+            >
+              start ▸
+            </button>
+          </div>
+
+          <div className="ab-buttons" aria-hidden="true">
+            <Link to="/contact" className="ab-button" data-testid="device-a-btn" title="contact">A</Link>
+            <Link to="/admin/login" className="ab-button" data-testid="device-b-btn" title="admin">B</Link>
+          </div>
+        </div>
+
+        {/* Speaker grill */}
+        <div className="speaker-grill" aria-hidden="true">
+          <span /><span /><span /><span />
+        </div>
       </div>
     </div>
   );
-
-  return <NotebookFrame single>{content}</NotebookFrame>;
 };
 
 export default Hub;

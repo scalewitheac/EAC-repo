@@ -18,7 +18,8 @@ import Contact from "./pages/Contact";
 import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
 
-import { RibbonBookmark, TopNav } from "./components/notebook/NotebookShell";
+import { RibbonBookmark } from "./components/notebook/NotebookShell";
+import BackButton from "./components/BackButton";
 
 const RequireSiteAccess = ({ children, needDisclaimer = true }) => {
   const { siteUnlocked, disclaimerAccepted } = useAuth();
@@ -41,8 +42,8 @@ const Layout = () => {
 
   return (
     <>
-      <TopNav />
       <RibbonBookmark />
+      <BackButton />
     </>
   );
 };
