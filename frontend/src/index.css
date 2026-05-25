@@ -247,12 +247,12 @@
 /* ribbon bookmark (paper) */
 .ribbon {
   position: fixed;
-  top: 0;
-  left: 64px;
-  width: 36px;
-  height: 110px;
+  top: 56px;
+  left: 38px;
+  width: 32px;
+  height: 96px;
   background: var(--margin-color);
-  z-index: 50;
+  z-index: 55;
   box-shadow: 2px 2px 0 var(--ink-color);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
   cursor: pointer;
@@ -260,9 +260,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 14px;
+  padding-top: 12px;
 }
-.ribbon:hover { height: 130px; }
+.ribbon:hover { height: 116px; }
 .ribbon-label {
   color: var(--bg-color);
   font-family: 'VT323', monospace;
@@ -298,6 +298,139 @@
 
 ::selection {
   background: var(--margin-color);
+
+/* ====================================================
+   FULL-SCREEN CRT FRAME (sub-pages wrap their content
+   in a giant retro monitor — notebook lives inside)
+   ==================================================== */
+.crt-stage {
+  min-height: 100vh;
+  width: 100%;
+  background:
+    radial-gradient(ellipse at 50% 30%, #261d28 0%, #15101a 60%, #07060a 100%);
+  padding: 22px;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+.crt-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+.crt-monitor {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(180deg, #1a141a 0%, #0d090d 100%);
+  border-radius: 22px;
+  padding: 14px;
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.7),
+    inset 0 2px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+.crt-monitor::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 0 0, rgba(255,255,255,0.08) 2.5px, transparent 3px),
+    radial-gradient(circle at 100% 0, rgba(255,255,255,0.08) 2.5px, transparent 3px),
+    radial-gradient(circle at 0 100%, rgba(255,255,255,0.08) 2.5px, transparent 3px),
+    radial-gradient(circle at 100% 100%, rgba(255,255,255,0.08) 2.5px, transparent 3px);
+  background-size: 6px 6px;
+  background-position: 0 0, 100% 0, 0 100%, 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.crt-monitor-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'VT323', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(247, 214, 120, 0.8);
+  padding: 4px 14px 10px;
+}
+.crt-monitor-statusbar .led {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 9999px;
+  background: #80ff80;
+  margin-right: 6px;
+  box-shadow: 0 0 6px #80ff80;
+}
+
+.crt-monitor-glass {
+  position: relative;
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg-color);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.35),
+    inset 0 0 6px rgba(247, 214, 120, 0.18);
+}
+.crt-monitor-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.05) 0px,
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+.crt-monitor-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 31;
+  background:
+    radial-gradient(ellipse at center, transparent 70%, rgba(0, 0, 0, 0.35) 100%);
+}
+.crt-monitor-glass > * { position: relative; z-index: 1; }
+
+.sound-toggle {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  z-index: 40;
+  font-family: 'VT323', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(247, 214, 120, 0.85);
+  border: 1px solid rgba(247, 214, 120, 0.35);
+  cursor: pointer;
+}
+.sound-toggle:hover { color: var(--crt-fg); background: rgba(0, 0, 0, 0.6); }
+
+@media (max-width: 640px) {
+  .crt-stage { padding: 8px; }
+  .crt-monitor { padding: 8px; border-radius: 14px; }
+  .crt-monitor-statusbar { font-size: 0.75rem; padding: 2px 8px 6px; }
+}
+
   color: var(--bg-color);
 }
 
@@ -594,7 +727,16 @@
     0 30px 60px -20px rgba(0, 0, 0, 0.7),
     inset 0 2px 0 rgba(255, 255, 255, 0.45),
     inset 0 -6px 16px rgba(0, 0, 0, 0.18);
+  transition: background 350ms ease;
 }
+
+/* ---- Device shell color variants ---- */
+.device[data-shell="mauve"]     { --dev-shell-light:#ebd6e1; --dev-shell:#c9aabc; --dev-shell-dark:#8d6c80; }
+.device[data-shell="magenta"]   { --dev-shell-light:#ffcfe6; --dev-shell:#ff5fb0; --dev-shell-dark:#9c1a6a; }
+.device[data-shell="cyan"]      { --dev-shell-light:#cdf5ff; --dev-shell:#46c8e0; --dev-shell-dark:#176880; }
+.device[data-shell="turquoise"] { --dev-shell-light:#c9f3e1; --dev-shell:#3ec9a0; --dev-shell-dark:#0e6e54; }
+.device[data-shell="navy"]      { --dev-shell-light:#aab5d2; --dev-shell:#2f3e6c; --dev-shell-dark:#121a36; }
+.device[data-shell="olive"]     { --dev-shell-light:#e1deb3; --dev-shell:#a8a062; --dev-shell-dark:#534f24; }
 .device::before {
   /* speckled plastic */
   content: "";
@@ -817,24 +959,34 @@
   gap: 16px;
 }
 .dpad {
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   position: relative;
 }
-.dpad span {
+.dpad button {
   position: absolute;
   background: linear-gradient(180deg, #2b202b 0%, #1a121a 100%);
   border-radius: 4px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 4px rgba(0,0,0,0.4);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'VT323', monospace;
+  font-size: 0.9rem;
+  transition: transform 80ms ease, box-shadow 80ms ease, color 120ms ease;
 }
-.dpad .up    { top: 0; left: 24px; width: 24px; height: 26px; }
-.dpad .down  { bottom: 0; left: 24px; width: 24px; height: 26px; }
-.dpad .left  { left: 0; top: 24px; width: 26px; height: 24px; }
-.dpad .right { right: 0; top: 24px; width: 26px; height: 24px; }
+.dpad button:hover { color: rgba(255, 255, 255, 0.9); }
+.dpad button:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.4); }
+.dpad .up    { top: 0;      left: 28px;  width: 28px; height: 30px; border-radius: 4px 4px 0 0; }
+.dpad .down  { bottom: 0;   left: 28px;  width: 28px; height: 30px; border-radius: 0 0 4px 4px; }
+.dpad .left  { left: 0;     top: 28px;   width: 30px; height: 28px; border-radius: 4px 0 0 4px; }
+.dpad .right { right: 0;    top: 28px;   width: 30px; height: 28px; border-radius: 0 4px 4px 0; }
 .dpad .center {
-  left: 24px; top: 24px; width: 24px; height: 24px;
+  left: 28px; top: 28px; width: 28px; height: 28px;
   background: #1a121a;
   border-radius: 2px;
+  cursor: default;
 }
 
 .start-select {
@@ -893,6 +1045,39 @@
   color: var(--dev-shell-dark);
   text-shadow: none;
 }
+
+/* ---- Color strips under the A/B buttons ---- */
+.color-strips {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+  margin-top: 18px;
+  width: 144px;
+  margin-left: auto;
+}
+.color-strip {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 90ms ease, box-shadow 120ms ease, height 120ms ease;
+}
+.color-strip:hover  { transform: translateY(-1px); height: 8px; }
+.color-strip[aria-pressed="true"] {
+  height: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 0 2px rgba(0, 0, 0, 0.45), 0 0 12px currentColor;
+}
+.color-strip-mauve     { background: #c9aabc; color: #c9aabc; }
+.color-strip-magenta   { background: #ff5fb0; color: #ff5fb0; }
+.color-strip-cyan      { background: #46c8e0; color: #46c8e0; }
+.color-strip-turquoise { background: #3ec9a0; color: #3ec9a0; }
+.color-strip-navy      { background: #2f3e6c; color: #2f3e6c; }
+.color-strip-olive     { background: #a8a062; color: #a8a062; }
 
 .speaker-grill {
   position: absolute;

@@ -13,28 +13,38 @@ export const RibbonBookmark = () => {
 };
 
 export const NotebookFrame = ({ children, leftPage, rightPage, single = false }) => {
-  // Two-page spread notebook frame. Spiral binding removed for cleaner look.
+  // Sub-pages render inside a full-screen CRT monitor with the notebook on the screen.
   return (
-    <div className="min-h-screen w-full py-8 px-4 relative" style={{ background: "var(--bg-deep)" }}>
-      <div className="mx-auto max-w-6xl relative">
-        <div
-          className={`grid ${single ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"} bg-[var(--bg-color)] shadow-2xl relative`}
-          style={{ minHeight: "78vh", boxShadow: "0 30px 60px -20px var(--shadow), 0 0 0 1px rgba(0,0,0,0.06)" }}
-        >
-          {single ? (
-            <div className="paper paper-margin relative overflow-hidden">
-              <div className="relative z-10 p-8 md:p-12 min-h-[78vh]">{children}</div>
+    <div className="crt-stage" data-testid="page-crt-stage">
+      <div className="crt-monitor">
+        <div className="crt-monitor-statusbar">
+          <span><span className="led" /> on air</span>
+          <span>daymond.note</span>
+        </div>
+        <div className="crt-monitor-glass">
+          <div className="w-full h-full overflow-auto notebook-scroll">
+            <div className="mx-auto max-w-6xl px-4 py-6">
+              <div
+                className={`grid ${single ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"} bg-[var(--bg-color)] relative`}
+                style={{ minHeight: "78vh", boxShadow: "0 30px 60px -20px var(--shadow), 0 0 0 1px rgba(0,0,0,0.06)" }}
+              >
+                {single ? (
+                  <div className="paper paper-margin relative overflow-hidden">
+                    <div className="relative z-10 p-8 md:p-12 min-h-[78vh]">{children}</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="paper paper-margin relative overflow-hidden">
+                      <div className="relative z-10 p-6 md:p-10 min-h-[78vh]">{leftPage}</div>
+                    </div>
+                    <div className="paper relative overflow-hidden">
+                      <div className="relative z-10 p-6 md:p-10 min-h-[78vh]">{rightPage}</div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="paper paper-margin relative overflow-hidden">
-                <div className="relative z-10 p-6 md:p-10 min-h-[78vh]">{leftPage}</div>
-              </div>
-              <div className="paper relative overflow-hidden">
-                <div className="relative z-10 p-6 md:p-10 min-h-[78vh]">{rightPage}</div>
-              </div>
-            </>
-          )}
+          </div>
         </div>
       </div>
     </div>
