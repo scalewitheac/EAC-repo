@@ -45,11 +45,23 @@ export const AuthProvider = ({ children }) => {
     setAdmin(null);
   };
 
+  // Full sign-out: clears the site password gate, disclaimer flag, and
+  // any admin session. Sends user back to the boot/password screen.
+  const signOut = () => {
+    localStorage.removeItem("admin-token");
+    sessionStorage.removeItem("site-unlocked");
+    sessionStorage.removeItem("disclaimer-accepted");
+    setToken(null);
+    setAdmin(null);
+    setSiteUnlocked(false);
+    setDisclaimerAccepted(false);
+  };
+
   return (
     <AuthContext.Provider value={{
       siteUnlocked, verifySitePassword,
       disclaimerAccepted, acceptDisclaimer,
-      token, admin, login, logout, API,
+      token, admin, login, logout, signOut, API,
     }}>
       {children}
     </AuthContext.Provider>

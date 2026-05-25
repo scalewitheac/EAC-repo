@@ -20,6 +20,7 @@ import AdminPanel from "./pages/AdminPanel";
 
 import { RibbonBookmark } from "./components/notebook/NotebookShell";
 import BackButton from "./components/BackButton";
+import SignOutButton from "./components/SignOutButton";
 
 const RequireSiteAccess = ({ children, needDisclaimer = true }) => {
   const { siteUnlocked, disclaimerAccepted } = useAuth();
@@ -40,10 +41,17 @@ const Layout = () => {
     return () => document.removeEventListener("contextmenu", onCtx);
   }, []);
 
+  const { siteUnlocked, disclaimerAccepted } = useAuth();
+  const { pathname } = useLocation();
+  const onAuthScreens = pathname === "/" || pathname === "/disclaimer";
+  const onHub = pathname === "/home";
+  const showSignOut = siteUnlocked && disclaimerAccepted && !onAuthScreens && !onHub;
+
   return (
     <>
       <RibbonBookmark />
       <BackButton />
+      {showSignOut && <SignOutButton variant="pill" />}
     </>
   );
 };

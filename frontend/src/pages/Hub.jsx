@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import SignOutButton from "../components/SignOutButton";
 import * as sfx from "../lib/sfx";
 
 const MENU = [
@@ -113,7 +114,10 @@ const Hub = () => {
           >
             ♪ {muted ? "off" : "on"}
           </button>
-          <span>dysthymic — v1.0</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span>dysthymic — v1.0</span>
+            <SignOutButton variant="device" />
+          </span>
         </div>
 
         {/* Screen */}
