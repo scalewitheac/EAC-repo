@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { NotebookFrame, PageCorner, StickyNote } from "../components/notebook/NotebookShell";
+import AdminQuickAdd from "../components/AdminQuickAdd";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -9,12 +10,12 @@ const Writings = () => {
   const [selected, setSelected] = useState(null);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    axios.get(`${API}/writings`).then((r) => {
-      setItems(r.data);
-      if (r.data.length) setSelected(r.data[0]);
-    });
-  }, []);
+  const load = () => axios.get(`${API}/writings`).then((r) => {
+    setItems(r.data);
+    if (r.data.length && !selected) setSelected(r.data[0]);
+  });
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,6 +57,7 @@ const Writings = () => {
 
   const rightPage = (
     <div className="relative h-full">
+      <AdminQuickAdd type="writing" onAdded={load} />
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-marker text-3xl text-[var(--ink-color)] tilt-r">index</h3>
         <span className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)]">{filtered.length}</span>

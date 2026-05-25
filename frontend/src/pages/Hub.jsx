@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { NotebookFrame } from "../components/notebook/NotebookShell";
 
-// --- Hand-drawn icon stacks ---
 const IconCard = ({ children }) => (
   <div className="relative w-14 h-16 md:w-16 md:h-20 flex-shrink-0" aria-hidden="true">
     <div
@@ -45,55 +44,37 @@ const MailIcon = () => (
 );
 
 const ITEMS = [
-  { to: "/drawings", title: "Drawings", caption: "doodles & multimedia", Icon: BrushIcon, tilt: "-1.6deg" },
-  { to: "/writings", title: "Writings", caption: "musings & notices", Icon: DocIcon, tilt: "1.1deg" },
-  { to: "/videos", title: "Videos", caption: "", Icon: CamIcon, tilt: "-1.1deg" },
-  { to: "/contact", title: "Contact", caption: "leave a message", Icon: MailIcon, tilt: "1.4deg" },
+  { to: "/drawings", title: "Drawings", caption: "doodles & multimedia", Icon: BrushIcon, color: "sticky-yellow", tilt: "-1.6deg" },
+  { to: "/writings", title: "Writings", caption: "musings & notices", Icon: DocIcon, color: "sticky-peach", tilt: "1.1deg" },
+  { to: "/videos", title: "Videos", caption: "tok-style & shorts", Icon: CamIcon, color: "sticky-mint", tilt: "-1.1deg" },
+  { to: "/contact", title: "Contact", caption: "leave a message", Icon: MailIcon, color: "sticky-sky", tilt: "1.4deg" },
 ];
 
 const Hub = () => {
   const content = (
-    <div className="relative w-full max-w-5xl mx-auto">
-      {/* PicoChat-style window frame */}
-      <div className="pico-window">
-        <div className="pico-titlebar">
-          <span>▒ room — notebook ▒</span>
-          <span>♥ menu</span>
-        </div>
-
-        {/* status strip */}
-        <div className="px-4 py-2 border-b-2 border-[var(--ink-color)] bg-[var(--bg-deep)] flex items-center justify-between font-pixel text-sm uppercase tracking-widest text-[var(--ink-soft)]">
-          <span>▸ select a channel</span>
-          <span className="hidden sm:inline">⏷ 04 channels online</span>
-        </div>
-
-        <div className="p-6 md:p-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
-            {ITEMS.map(({ to, title, caption, Icon, tilt }) => (
-              <Link
-                key={to}
-                to={to}
-                data-testid={`hub-nav-${title.toLowerCase()}-link`}
-                className="sticky-pad block group"
-                style={{ "--tilt": tilt }}
-              >
-                <div className="flex items-center gap-5 px-6 py-7 md:px-8 md:py-8">
-                  <IconCard><Icon /></IconCard>
-                  <div className="flex-1">
-                    <div className="font-marker text-3xl md:text-4xl text-[var(--ink-color)] leading-tight group-hover:underline">
-                      {title}
-                    </div>
-                    {caption && (
-                      <div className="font-pixel uppercase tracking-widest text-xs md:text-sm text-[var(--ink-soft)] mt-1">
-                        ▸ {caption}
-                      </div>
-                    )}
-                  </div>
+    <div className="relative w-full max-w-5xl mx-auto pt-4 pb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
+        {ITEMS.map(({ to, title, caption, Icon, color, tilt }) => (
+          <Link
+            key={to}
+            to={to}
+            data-testid={`hub-nav-${title.toLowerCase()}-link`}
+            className={`sticky-pad ${color} block group`}
+            style={{ "--tilt": tilt }}
+          >
+            <div className="flex items-center gap-5 px-6 py-7 md:px-8 md:py-8">
+              <IconCard><Icon /></IconCard>
+              <div className="flex-1">
+                <div className="font-marker text-3xl md:text-4xl text-[var(--ink-color)] leading-tight group-hover:underline">
+                  {title}
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+                <div className="font-pixel uppercase tracking-widest text-xs md:text-sm text-[var(--ink-soft)] mt-1">
+                  ▸ {caption}
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );

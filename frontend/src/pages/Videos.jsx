@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { NotebookFrame, PageCorner, StickyNote } from "../components/notebook/NotebookShell";
 import ProtectedImage, { resolveMediaUrl } from "../components/ProtectedImage";
+import AdminQuickAdd from "../components/AdminQuickAdd";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -107,6 +108,8 @@ const Videos = () => {
     axios.get(`${API}/videos`).then((r) => setItems(r.data));
   }, []);
 
+  const reload = () => axios.get(`${API}/videos`).then((r) => setItems(r.data));
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
@@ -143,6 +146,7 @@ const Videos = () => {
 
   const rightPage = (
     <div className="relative h-full">
+      <AdminQuickAdd type="video" onAdded={reload} />
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-marker text-3xl text-[var(--ink-color)] tilt-r">reel</h3>
         <span className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)]">{filtered.length}</span>

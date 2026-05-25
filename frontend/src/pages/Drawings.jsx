@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { NotebookFrame, PageCorner, StickyNote } from "../components/notebook/NotebookShell";
 import ProtectedImage from "../components/ProtectedImage";
+import AdminQuickAdd from "../components/AdminQuickAdd";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -11,13 +12,13 @@ const Drawings = () => {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axios.get(`${API}/drawings`).then((r) => {
-      setItems(r.data);
-      if (r.data.length) setSelected(r.data[0]);
-      setLoading(false);
-    });
-  }, []);
+  const load = () => axios.get(`${API}/drawings`).then((r) => {
+    setItems(r.data);
+    if (r.data.length && !selected) setSelected(r.data[0]);
+    setLoading(false);
+  });
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -76,6 +77,7 @@ const Drawings = () => {
 
   const rightPage = (
     <div className="relative h-full">
+      <AdminQuickAdd type="drawing" onAdded={load} />
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-marker text-3xl text-[var(--ink-color)] tilt-r">index</h3>
         <span className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)]">

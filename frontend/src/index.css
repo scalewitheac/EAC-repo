@@ -7,16 +7,19 @@
    (applies everywhere EXCEPT inside .password-gate)
    ==================================================== */
 :root {
-  --bg-color: #fdfbf7;
-  --bg-deep: #f3ecdc;
-  --line-color: #b3d4fc;
-  --margin-color: #ff8a9b;
-  --ink-color: #2c3032;
-  --ink-soft: #555a5e;
-  --sticky-bg: #fff7a8;
-  --sticky-alt: #ffd8a8;
-  --tape: rgba(255, 255, 255, 0.55);
-  --shadow: rgba(20, 20, 25, 0.18);
+  --bg-color: #fffaef;
+  --bg-deep: #f0e2c2;
+  --line-color: #8fc1ff;
+  --margin-color: #ff5a7a;
+  --ink-color: #1c1c22;
+  --ink-soft: #4a4f55;
+  --sticky-bg: #fff196;
+  --sticky-alt: #ffbe7d;
+  --sticky-mint: #b9ecc3;
+  --sticky-sky: #c2ddf6;
+  --sticky-coral: #ffb1b1;
+  --tape: rgba(255, 255, 255, 0.65);
+  --shadow: rgba(20, 20, 25, 0.22);
   --neon-glow: none;
   --neon-text: none;
 }
@@ -57,6 +60,23 @@
     background-color: var(--bg-color);
     color: var(--ink-color);
     -webkit-font-smoothing: antialiased;
+  }
+  /* Subtle CRT scanline overlay for digitized feel — extremely faint */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.025) 0px,
+      rgba(0, 0, 0, 0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index: 100;
+    mix-blend-mode: multiply;
+    opacity: 0.55;
   }
 }
 
@@ -119,6 +139,11 @@
   );
 }
 .sticky-alt { background: var(--sticky-alt); }
+.sticky-yellow { background: var(--sticky-bg) !important; }
+.sticky-peach  { background: var(--sticky-alt) !important; }
+.sticky-mint   { background: var(--sticky-mint) !important; }
+.sticky-sky    { background: var(--sticky-sky) !important; }
+.sticky-coral  { background: var(--sticky-coral) !important; }
 
 .tape {
   position: absolute;
