@@ -89,7 +89,7 @@ const Hub = () => {
 
   return (
     <div className="retro-stage" data-testid="hub-device-stage">
-      <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="dysthymic handheld console">
+      <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="delined handheld console">
         {/* Header strip */}
         <div className="device-header">
           <span><span className="power-led" />power on</span>
@@ -115,7 +115,7 @@ const Hub = () => {
             ♪ {muted ? "off" : "on"}
           </button>
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span>dysthymic — v1.0</span>
+            <span>delined — v1.0</span>
             <SignOutButton variant="device" />
           </span>
         </div>
@@ -137,7 +137,7 @@ const Hub = () => {
             </div>
 
             <div className="crt-title">
-              ▒ dysthymic<span className="crt-blink">_</span>
+              ▒ delined<span className="crt-blink">_</span>
             </div>
 
             {booting ? (

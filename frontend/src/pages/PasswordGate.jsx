@@ -6,7 +6,7 @@ import LightSwitch from "../components/LightSwitch";
 import * as sfx from "../lib/sfx";
 
 const BOOT_LINES = [
-  "dysthymic os v1.0  ............  ok",
+  "delined os v1.0  ..............  ok",
   "© memory check  ................  ok",
   "© rom integrity  ...............  ok",
   "© palette load  ................  ok",
@@ -109,7 +109,7 @@ const PasswordGate = () => {
             style={{ color: "var(--ink-soft)", fontSize: "0.85rem" }}
           >
             <span style={{ color: "var(--line-color)" }}>
-              ▣ dysthymic os
+              ▣ delined os
             </span>
             <span>boot sequence</span>
           </div>
@@ -199,7 +199,7 @@ const PasswordGate = () => {
             style={{ color: "var(--ink-soft)", fontSize: "0.75rem" }}
           >
             <span>hold ◐ to recolor the boot</span>
-            <span>v1.0 ░░ © dysthymic</span>
+            <span>v1.0 ░░ © delined</span>
           </div>
         </div>
       </div>

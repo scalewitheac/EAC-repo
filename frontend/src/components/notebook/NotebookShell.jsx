@@ -18,7 +18,7 @@ export const NotebookFrame = ({ children, leftPage, rightPage, single = false })
     <div className="crt-stage" data-testid="page-crt-stage">
       <div className="crt-monitor">
         <div className="crt-monitor-statusbar">
-          <span><span className="led" /> dysthymic</span>
+          <span><span className="led" /> delined</span>
           <PageOperatorBadge />
         </div>
         <div className="crt-monitor-glass">

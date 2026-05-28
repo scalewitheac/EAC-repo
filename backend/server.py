@@ -29,9 +29,12 @@ JWT_ALGORITHM = "HS256"
 SITE_PASSWORD = os.environ.get('SITE_PASSWORD', 'pass')
 ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
 ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
-APP_NAME = os.environ.get('APP_NAME', 'creative-journal')
+APP_NAME = os.environ.get('APP_NAME', 'delined')
 EMERGENT_KEY = os.environ.get('EMERGENT_LLM_KEY')
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
+MESSAGE_EMAIL = os.environ.get('MESSAGE_EMAIL', '')
+EMAIL_FROM = os.environ.get('EMAIL_FROM', 'delined <onboarding@resend.dev>')
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -172,6 +175,40 @@ class MessageIn(BaseModel):
     sender_descriptor: Optional[str] = ""
     message: str
 
+class AdminUserIn(BaseModel):
+    email: str
+    password: str
+    name: Optional[str] = ""
+
+# -------------------- Email helper --------------------
+def send_email(subject: str, html: str, to: Optional[str] = None) -> bool:
+    """Send via Resend HTTP API. Silently returns False if not configured."""
+    if not RESEND_API_KEY or not MESSAGE_EMAIL:
+        logger.info("Email skipped — RESEND_API_KEY or MESSAGE_EMAIL missing")
+        return False
+    try:
+        resp = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": EMAIL_FROM,
+                "to": [to or MESSAGE_EMAIL],
+                "subject": subject,
+                "html": html,
+            },
+            timeout=15,
+        )
+        if resp.status_code >= 400:
+            logger.error(f"Resend error {resp.status_code}: {resp.text}")
+            return False
+        return True
+    except Exception as e:
+        logger.error(f"Resend send failed: {e}")
+        return False
+
 # -------------------- Routes --------------------
 @api_router.get("/")
 async def root():
@@ -293,6 +330,18 @@ async def create_message(body: MessageIn):
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     await db.messages.insert_one(doc)
     doc.pop("_id", None)
+
+    # Fire-and-forget email notification to the operators inbox
+    html = (
+        f"<h2>new delined transmission</h2>"
+        f"<p><b>from:</b> {doc.get('name')} &lt;{doc.get('email')}&gt;</p>"
+        f"<p><b>website / socials:</b> {doc.get('website') or '—'}</p>"
+        f"<p><b>found via:</b> {doc.get('found_via') or '—'}</p>"
+        f"<p><b>sender descriptor (map):</b> {doc.get('sender_descriptor') or '—'}</p>"
+        f"<hr><p style='white-space:pre-wrap'>{doc.get('message')}</p>"
+        f"<hr><p><i>received {doc.get('created_at')} — awaiting approval</i></p>"
+    )
+    send_email(subject=f"delined — note from {doc.get('name')}", html=html)
     return doc
 
 @api_router.patch("/messages/{message_id}/approve")
@@ -343,6 +392,9 @@ async def download_file(path: str):
 
 # -------------------- Seed & startup --------------------
 async def seed_admin():
+    # Remove legacy admin (rebrand)
+    await db.users.delete_one({"email": "scalewitheac@gmail.com"})
+
     existing = await db.users.find_one({"email": ADMIN_EMAIL})
     if not existing:
         await db.users.insert_one({
