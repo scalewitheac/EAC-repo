@@ -72,9 +72,9 @@ const Disclaimer = () => {
               className="block hover:scale-[1.03] active:scale-95 transition-transform duration-150"
             >
               <img
-                src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/xwx5rlg2_ChatGPT%20Image%20May%2025%2C%202026%2C%2006_52_01%20PM%20-%20Edited.png"
-                alt="enter the menu"
-                className="w-60 md:w-72 select-none"
+                src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/43b6fv8r_Untitled%20design%20%281%29.png"
+                alt="I Understand — enter the menu"
+                className="w-72 md:w-96 select-none"
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
                 data-testid="disclaimer-souvenir-img"
