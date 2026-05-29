@@ -44,37 +44,18 @@ const Disclaimer = () => {
             </p>
           </div>
 
-          <div className="mt-12 flex flex-col items-center gap-4">
-            <button
-              onClick={handleEnter}
-              data-testid="disclaimer-accept-btn"
-              className="block hover:scale-[1.03] active:scale-95 transition-transform duration-150"
-              aria-label="I Understand — enter"
-            >
-              <img
-                src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/xwx5rlg2_ChatGPT%20Image%20May%2025%2C%202026%2C%2006_52_01%20PM%20-%20Edited.png"
-                alt="I Understand"
-                className="w-80 md:w-[26rem] select-none"
-                draggable={false}
-                onContextMenu={(e) => e.preventDefault()}
-              />
-            </button>
-          </div>
-
-          {/* Bottom-of-page repeat — same image, also returns to the menu */}
           <div className="mt-16 flex flex-col items-center gap-3">
-            <div className="w-full max-w-md border-t-2 border-dashed border-[var(--ink-soft)] opacity-50" />
             <button
               type="button"
               onClick={handleEnter}
-              data-testid="disclaimer-souvenir-btn"
-              aria-label="enter — main menu"
+              data-testid="disclaimer-accept-btn"
+              aria-label="I Understand — enter the menu"
               className="block hover:scale-[1.03] active:scale-95 transition-transform duration-150"
             >
               <img
                 src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/43b6fv8r_Untitled%20design%20%281%29.png"
                 alt="I Understand — enter the menu"
-                className="w-72 md:w-96 select-none"
+                className="w-80 md:w-[28rem] select-none"
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
                 data-testid="disclaimer-souvenir-img"
