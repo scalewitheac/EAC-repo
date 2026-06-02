@@ -710,45 +710,11 @@
   width: 100%;
   background-color: var(--bg-color);
   background-image:
-    /* faint coffee ring (top right) */
-    radial-gradient(
-      circle at 92% 14%,
-      rgba(160, 110, 60, 0.18) 0,
-      rgba(160, 110, 60, 0.18) 1px,
-      transparent 2px,
-      transparent 48px,
-      rgba(160, 110, 60, 0.12) 49px,
-      rgba(160, 110, 60, 0.12) 52px,
-      transparent 53px
-    ),
-    /* second small coffee ring (bottom left) */
-    radial-gradient(
-      circle at 8% 86%,
-      rgba(160, 110, 60, 0.12) 0,
-      rgba(160, 110, 60, 0.12) 1px,
-      transparent 2px,
-      transparent 32px,
-      rgba(160, 110, 60, 0.10) 33px,
-      rgba(160, 110, 60, 0.10) 35px,
-      transparent 36px
-    ),
-    /* red margin line on the left */
-    linear-gradient(
-      to right,
-      transparent 0,
-      transparent 86px,
-      rgba(255, 138, 161, 0.55) 86px,
-      rgba(255, 138, 161, 0.55) 88px,
-      transparent 88px
-    ),
-    /* main notebook horizontal lines */
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 31px,
-      var(--line-color) 31px,
-      var(--line-color) 32px
-    );
+    url("https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/df20ee9o_15187.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -757,28 +723,25 @@
   overflow: hidden;
 }
 .retro-stage::before {
+  /* warm paper tint + soft vignette so the device still pops */
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(180deg, rgba(255, 250, 239, 0.18), rgba(255, 250, 239, 0.22));
+  mix-blend-mode: multiply;
 }
-/* 3-hole-punch dots running down the left edge */
 .retro-stage::after {
+  /* subtle paper grain overlay */
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 28px;
-  width: 16px;
+  inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(circle at 50% 14%, rgba(0,0,0,0.18) 0 7px, transparent 7.5px),
-                    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.18) 0 7px, transparent 7.5px),
-                    radial-gradient(circle at 50% 86%, rgba(0,0,0,0.18) 0 7px, transparent 7.5px);
-  background-repeat: no-repeat;
-  background-size: 16px 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  mix-blend-mode: overlay;
 }
 
 /* ---------- Hand-drawn doodles scattered behind the device ---------- */
