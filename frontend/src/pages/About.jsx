@@ -28,7 +28,7 @@ const About = () => {
         <span className="tape" />
         <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)]">content warning</div>
         <p className="font-hand text-[var(--ink-color)] text-base mt-1 max-w-sm">
-          this blog is 18+. some entries contain themes that are not for younger or sensitive audiences.
+          Asking questions while someone is drawing may be distracting. Especially if the questions are consistent, repetitive, and are more critical than inquisitive.
         </p>
       </div>
     </div>
@@ -56,25 +56,20 @@ const About = () => {
       </div>
 
       <div className="mt-8">
-        <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)] mb-2">elsewhere</div>
+        <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)] mb-2">other notebooks</div>
         <div className="flex flex-wrap gap-3">
           {SOCIALS.map((s, idx) => (
-            <a
+            <span
               key={s.label}
-              href={s.url || undefined}
-              target="_blank"
-              rel="noreferrer"
               data-testid={`social-${s.label}-link`}
-              className={`pico-btn ${idx % 2 === 0 ? "tilt-l" : "tilt-r"} ${!s.url ? "pointer-events-none" : ""} relative`}
-              title={s.url || "empty slot"}
+              className={`pico-btn ${idx % 2 === 0 ? "tilt-l" : "tilt-r"} pointer-events-none relative`}
+              title="error"
             >
-              {s.url ? s.label : (
-                <span className="relative">
-                  <span className="graphite-eraser absolute -inset-1 rounded-sm" aria-hidden />
-                  <span className="relative opacity-60 line-through">{s.label}</span>
-                </span>
-              )}
-            </a>
+              <span className="relative">
+                <span className="graphite-eraser absolute -inset-1 rounded-sm" aria-hidden />
+                <span className="relative opacity-60">error</span>
+              </span>
+            </span>
           ))}
         </div>
       </div>

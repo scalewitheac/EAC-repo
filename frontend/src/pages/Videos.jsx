@@ -136,7 +136,7 @@ const Videos = () => {
       </p>
       <div className="mt-8 sticky tilt-r p-4 inline-block">
         <span className="tape" />
-        <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)]">picochat tip</div>
+        <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-soft)]">note to self</div>
         <p className="font-hand text-[var(--ink-color)] text-lg mt-1">
           → press the bunny-eared corner to wander forward.
         </p>

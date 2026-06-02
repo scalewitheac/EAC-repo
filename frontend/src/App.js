@@ -17,6 +17,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
+import NotFound from "./pages/NotFound";
 
 import { RibbonBookmark } from "./components/notebook/NotebookShell";
 import BackButton from "./components/BackButton";
@@ -73,7 +74,7 @@ function AppShell() {
         <Route path="/contact" element={<RequireSiteAccess><Contact /></RequireSiteAccess>} />
         <Route path="/admin/login" element={<RequireSiteAccess><AdminLogin /></RequireSiteAccess>} />
         <Route path="/admin" element={<RequireSiteAccess><AdminPanel /></RequireSiteAccess>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="bottom-center" toastOptions={{ className: "font-hand" }} />
     </BrowserRouter>

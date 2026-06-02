@@ -27,10 +27,21 @@ A password-protected personal creative-journal site themed as a lined notebook w
 ## Backlog
 - P1: real-life notebook desk photo (currently using Pexels stock — user may replace)
 - P1: caption/CC file upload field for videos
+- P1: email forwarding for new messages → `delinedmessagedrafts@gmail.com` (BLOCKED on email provider + API key, e.g. Resend)
+- P1: Operators (admin user) management UI inside Admin Panel — backend endpoints already exist
 - P2: drag-and-drop reordering in admin
 - P2: bio is editable in admin (currently hardcoded)
 - P2: social link slots are hardcoded — make admin-editable
+- P2: split `backend/server.py` (~600 lines) into routers
 - P2: light-switch on password page is set to be visible only before unlock — confirmed; theme persists via localStorage
+
+## Recent Updates (2026-02)
+- Global sans-serif font (Inter) applied across all hand/marker classes
+- Disclaimer page rewritten to match user-provided text (Just take note… / a.k.a… / P.S. note); confirm-button image sized with `width:auto; height:auto; maxWidth:min(420px,90%)` to prevent warping
+- Created `/pages/NotFound.jsx` — device-style 404 page: CRT shows "I AM ERROR", left-side vertical label reads "come back later when its right again"; wired into App.js catch-all route
+- Videos page: "picochat tip" → "note to self"
+- About page: content-warning text updated; all 5 social slots now render as inert "error" pills; section heading "elsewhere" → "other notebooks"
+- Contact page: "sender descriptor" label/copy replaced with rotating random question (12 prompts, picked on mount); submit button → "Slip Onto The Desk"
 
 ## Next Action Items
 - User to test password gate, theme cycle, admin upload of real artwork.
