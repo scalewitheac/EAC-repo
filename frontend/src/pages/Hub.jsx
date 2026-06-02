@@ -8,7 +8,7 @@ const MENU = [
   { to: "/drawings", label: "Drawings", sub: "doodles & multimedia" },
   { to: "/writings", label: "Writings", sub: "musings & notices" },
   { to: "/videos",   label: "Videos",   sub: "shorts & timelapses" },
-  { to: "/contact",  label: "Signals",  sub: "leave a transmission" },
+  { to: "/contact",  label: "Multiplayer",  sub: "leave a transmission" },
 ];
 
 const SHELL_COLORS = [
@@ -198,7 +198,7 @@ const Hub = () => {
           </div>
 
           <div className="ab-buttons" aria-hidden="false">
-            <Link to="/contact"     className="ab-button" data-testid="device-a-btn" title="signals"     onClick={() => sfx.click()}>A</Link>
+            <Link to="/contact"     className="ab-button" data-testid="device-a-btn" title="multiplayer"    onClick={() => sfx.click()}>A</Link>
             <Link to="/admin/login" className="ab-button" data-testid="device-b-btn" title="operator"    onClick={() => sfx.click()}>B</Link>
           </div>
         </div>
