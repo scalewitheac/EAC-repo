@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SignOutButton from "../components/SignOutButton";
+import DoodleField from "../components/DoodleField";
 import * as sfx from "../lib/sfx";
 
 const MENU = [
@@ -89,7 +90,8 @@ const Hub = () => {
 
   return (
     <div className="retro-stage" data-testid="hub-device-stage">
-      <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="delined handheld console">
+      <DoodleField />
+      <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="delined handheld console" style={{ position: "relative", zIndex: 2 }}>
         {/* Header strip */}
         <div className="device-header">
           <span><span className="power-led" />power on</span>

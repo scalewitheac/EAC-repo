@@ -710,6 +710,38 @@
   width: 100%;
   background-color: var(--bg-color);
   background-image:
+    /* faint coffee ring (top right) */
+    radial-gradient(
+      circle at 92% 14%,
+      rgba(160, 110, 60, 0.18) 0,
+      rgba(160, 110, 60, 0.18) 1px,
+      transparent 2px,
+      transparent 48px,
+      rgba(160, 110, 60, 0.12) 49px,
+      rgba(160, 110, 60, 0.12) 52px,
+      transparent 53px
+    ),
+    /* second small coffee ring (bottom left) */
+    radial-gradient(
+      circle at 8% 86%,
+      rgba(160, 110, 60, 0.12) 0,
+      rgba(160, 110, 60, 0.12) 1px,
+      transparent 2px,
+      transparent 32px,
+      rgba(160, 110, 60, 0.10) 33px,
+      rgba(160, 110, 60, 0.10) 35px,
+      transparent 36px
+    ),
+    /* red margin line on the left */
+    linear-gradient(
+      to right,
+      transparent 0,
+      transparent 86px,
+      rgba(255, 138, 161, 0.55) 86px,
+      rgba(255, 138, 161, 0.55) 88px,
+      transparent 88px
+    ),
+    /* main notebook horizontal lines */
     repeating-linear-gradient(
       to bottom,
       transparent 0px,
@@ -733,19 +765,59 @@
   opacity: 0.05;
   mix-blend-mode: overlay;
 }
+/* 3-hole-punch dots running down the left edge */
 .retro-stage::after {
-  content: "✎ note to self...";
+  content: "";
   position: absolute;
-  top: 28px;
-  left: 38px;
-  font-family: 'VT323', monospace;
-  font-size: 0.95rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  top: 0;
+  bottom: 0;
+  left: 28px;
+  width: 16px;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 50% 14%, rgba(0,0,0,0.18) 0 7px, transparent 7.5px),
+                    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.18) 0 7px, transparent 7.5px),
+                    radial-gradient(circle at 50% 86%, rgba(0,0,0,0.18) 0 7px, transparent 7.5px);
+  background-repeat: no-repeat;
+  background-size: 16px 100%;
+}
+
+/* ---------- Hand-drawn doodles scattered behind the device ---------- */
+.doodle-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+.doodle {
+  position: absolute;
   color: var(--ink-soft);
   opacity: 0.55;
-  pointer-events: none;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.02));
+  transform-origin: center;
+  animation: doodle-bob 7s ease-in-out infinite;
 }
+.doodle svg { display: block; width: 100%; height: 100%; }
+.doodle.tint-rose  { color: #c75d7a; opacity: 0.5; }
+.doodle.tint-ink   { color: #1c1c22; opacity: 0.45; }
+.doodle.tint-mint  { color: #5a8c6b; opacity: 0.5; }
+.doodle.tint-blue  { color: #4d6e9a; opacity: 0.5; }
+.doodle.tint-amber { color: #b07a1f; opacity: 0.55; }
+@keyframes doodle-bob {
+  0%, 100% { transform: translate(0, 0) rotate(var(--r, 0deg)); }
+  50%      { transform: translate(0, -4px) rotate(calc(var(--r, 0deg) + 1.5deg)); }
+}
+.doodle-word {
+  position: absolute;
+  pointer-events: none;
+  font-family: 'Caveat', 'Patrick Hand', 'Comic Sans MS', cursive;
+  color: var(--ink-soft);
+  opacity: 0.42;
+  letter-spacing: 0.02em;
+  transform-origin: center;
+}
+.doodle-word.tint-rose { color: #c75d7a; opacity: 0.5; }
+.doodle-word.tint-blue { color: #4d6e9a; opacity: 0.5; }
 
 .device {
   width: min(680px, 95vw);
