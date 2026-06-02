@@ -52,7 +52,7 @@ const About = () => {
           if you'd like to leave a note, the contact page has a message board. messages are read
           before being shown.
         </p>
-        <p className="italic text-[var(--ink-soft)]">— scalewitheac</p>
+        <p className="italic text-[var(--ink-soft)]">— The author</p>
       </div>
 
       <div className="mt-8">

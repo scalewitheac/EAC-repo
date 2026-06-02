@@ -15,10 +15,9 @@ const Disclaimer = () => {
     <div className="min-h-screen w-full py-12 px-4 relative" style={{ background: "var(--bg-deep)" }}>
       <div className="mx-auto max-w-3xl bg-[var(--bg-color)] paper paper-margin relative overflow-hidden shadow-2xl">
         <div className="relative z-10 p-8 md:p-14">
-          <h1 className="font-marker text-6xl md:text-7xl text-[var(--ink-color)] leading-none mb-2 italic">
+          <h1 className="font-marker text-6xl md:text-7xl text-[var(--ink-color)] leading-none mb-8 italic">
             Disclaimer
           </h1>
-          <p className="font-hand text-[var(--ink-soft)] italic mb-6">Just take note…</p>
 
           <div className="space-y-4 font-hand text-lg md:text-xl text-[var(--ink-color)] leading-relaxed">
             <p>

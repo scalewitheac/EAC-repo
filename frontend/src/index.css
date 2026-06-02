@@ -249,7 +249,7 @@
   top: 56px;
   left: 38px;
   width: 32px;
-  height: 96px;
+  height: 116px;
   background: var(--margin-color);
   z-index: 55;
   box-shadow: 2px 2px 0 var(--ink-color);
@@ -257,11 +257,13 @@
   cursor: pointer;
   transition: height 180ms ease;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   padding-top: 12px;
+  gap: 4px;
 }
-.ribbon:hover { height: 116px; }
+.ribbon:hover { height: 132px; }
 .ribbon-label {
   color: var(--bg-color);
   font-family: 'VT323', monospace;
@@ -270,6 +272,15 @@
   text-orientation: mixed;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+.ribbon-mascot {
+  width: 18px;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.25));
+  margin-top: 2px;
 }
 
 /* ---------- Sticky-pad (perforated bottom — used on hub) ---------- */

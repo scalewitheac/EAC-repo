@@ -8,6 +8,15 @@ export const RibbonBookmark = () => {
   return (
     <Link to="/about" className="ribbon" data-testid="ribbon-bookmark-link" aria-label="About">
       <span className="ribbon-label">about</span>
+      <img
+        src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/1b483xlx_43b6fv8r_Untitled%20design%20%281%29.png"
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        className="ribbon-mascot"
+        data-testid="ribbon-mascot-img"
+      />
     </Link>
   );
 };
