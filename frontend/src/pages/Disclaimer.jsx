@@ -1,10 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { resolveMediaUrl } from "../components/ProtectedImage";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const FALLBACK_BTN =
+  "https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/43b6fv8r_Untitled%20design%20%281%29.png";
 
 const Disclaimer = () => {
   const navigate = useNavigate();
   const { acceptDisclaimer } = useAuth();
+  const [btnImg, setBtnImg] = useState(FALLBACK_BTN);
+
+  useEffect(() => {
+    let alive = true;
+    axios.get(`${API}/settings/images`).then((r) => {
+      if (alive && r.data?.disclaimer_button_path) setBtnImg(r.data.disclaimer_button_path);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const handleEnter = () => {
     acceptDisclaimer();
@@ -64,7 +79,7 @@ const Disclaimer = () => {
               className="block hover:scale-[1.03] active:scale-95 transition-transform duration-150"
             >
               <img
-                src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/43b6fv8r_Untitled%20design%20%281%29.png"
+                src={resolveMediaUrl(btnImg)}
                 alt="I Understand — enter the menu"
                 style={{ height: "auto", width: "auto", maxWidth: "min(420px, 90%)", display: "block" }}
                 className="select-none mx-auto"

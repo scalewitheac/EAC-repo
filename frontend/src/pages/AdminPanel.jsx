@@ -65,8 +65,13 @@ const AdminPanel = () => {
   const [d, setD] = useState({ title: "", date: "", image_path: "", tags: "", description: "" });
   const [w, setW] = useState({ title: "", date: "", content: "", tags: "" });
   const [v, setV] = useState({ title: "", date: "", external_url: "", video_path: "", thumbnail_path: "", tags: "", description: "" });
-  const [aboutImg, setAboutImg] = useState("");
-  const [aboutImgSaving, setAboutImgSaving] = useState(false);
+  const [siteImages, setSiteImages] = useState({
+    artist_image_path: "",
+    hub_background_path: "",
+    disclaimer_button_path: "",
+    about_bookmark_path: "",
+  });
+  const [imgSaving, setImgSaving] = useState({});
 
   const loadAll = async () => {
     const [mr, dr, wr, vr, sr] = await Promise.all([
@@ -74,10 +79,15 @@ const AdminPanel = () => {
       api.get(`/drawings`),
       api.get(`/writings`),
       api.get(`/videos`),
-      api.get(`/settings/about`),
+      api.get(`/settings/images`),
     ]);
     setMessages(mr.data); setDrawings(dr.data); setWritings(wr.data); setVideos(vr.data);
-    setAboutImg(sr.data?.artist_image_path || "");
+    setSiteImages({
+      artist_image_path: sr.data?.artist_image_path || "",
+      hub_background_path: sr.data?.hub_background_path || "",
+      disclaimer_button_path: sr.data?.disclaimer_button_path || "",
+      about_bookmark_path: sr.data?.about_bookmark_path || "",
+    });
   };
 
   useEffect(() => { if (token) loadAll(); /* eslint-disable-next-line */ }, [token]);
@@ -118,18 +128,18 @@ const AdminPanel = () => {
     loadAll();
   };
 
-  const saveAboutImg = async () => {
-    const path = (aboutImg || "").trim();
+  const saveSiteImage = async (key) => {
+    const path = (siteImages[key] || "").trim();
     if (!path) { toast("paste a url or upload an image first"); return; }
-    setAboutImgSaving(true);
+    setImgSaving((s) => ({ ...s, [key]: true }));
     try {
-      await api.put(`/settings/about`, { artist_image_path: path });
-      toast("artist image updated");
+      await api.put(`/settings/images`, { [key]: path });
+      toast("image updated");
       loadAll();
     } catch {
       toast("update failed");
     } finally {
-      setAboutImgSaving(false);
+      setImgSaving((s) => ({ ...s, [key]: false }));
     }
   };
 
@@ -142,57 +152,70 @@ const AdminPanel = () => {
         </span>
       </div>
 
-      <Section title="About — Artist Image">
-        <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-4 items-start" data-testid="about-image-section">
-          <div
-            className="relative bg-[var(--bg-color)] p-2 inline-block tilt-l shadow-md"
-            style={{ boxShadow: "2px 4px 10px var(--shadow)" }}
-          >
-            <span className="tape tape-tl" />
-            <span className="tape tape-tr" />
-            {aboutImg ? (
-              <img
-                src={resolveMediaUrl(aboutImg)}
-                alt="current artist"
-                className="w-36 h-44 object-cover"
-                draggable={false}
-                data-testid="about-image-preview"
-              />
-            ) : (
-              <div className="w-36 h-44 flex items-center justify-center font-pixel text-xs text-[var(--ink-soft)] uppercase tracking-widest">
-                no image
+      <Section title="Site Images">
+        <p className="font-hand text-sm text-[var(--ink-soft)] mb-3" data-testid="site-images-section">
+          Master controls for every image asset on the site. Paste a URL or upload a new file, then click save for that slot.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            { key: "artist_image_path",      label: "About — Artist Photo",       w: "w-36", h: "h-44", aspect: "aspect-[3/4]" },
+            { key: "hub_background_path",    label: "Hub — Background (behind Gameboy)", w: "w-44", h: "h-32", aspect: "aspect-[16/10]" },
+            { key: "disclaimer_button_path", label: "Disclaimer — “I Understand” Button", w: "w-40", h: "h-32", aspect: "aspect-[5/4]" },
+            { key: "about_bookmark_path",    label: "About — Bookmark Logo (top-left ribbon)", w: "w-24", h: "h-24", aspect: "aspect-square" },
+          ].map((slot) => {
+            const val = siteImages[slot.key] || "";
+            return (
+              <div key={slot.key} className="border border-[var(--ink-soft)]/30 rounded-md p-3" data-testid={`site-image-card-${slot.key}`}>
+                <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-color)] mb-2">{slot.label}</div>
+                <div className="flex gap-3 items-start">
+                  <div
+                    className={`relative bg-[var(--bg-color)] p-2 shrink-0 ${slot.w} ${slot.h} flex items-center justify-center overflow-hidden tilt-l`}
+                    style={{ boxShadow: "2px 4px 10px var(--shadow)" }}
+                  >
+                    {val ? (
+                      <img
+                        src={resolveMediaUrl(val)}
+                        alt={slot.label}
+                        className="max-w-full max-h-full object-contain"
+                        draggable={false}
+                        data-testid={`site-image-preview-${slot.key}`}
+                      />
+                    ) : (
+                      <div className="font-pixel text-xs text-[var(--ink-soft)] uppercase tracking-widest text-center">
+                        no image
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <input
+                      className="pico-input font-hand w-full"
+                      placeholder="image URL or storage path"
+                      value={val}
+                      onChange={(e) => setSiteImages((s) => ({ ...s, [slot.key]: e.target.value }))}
+                      data-testid={`site-image-input-${slot.key}`}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <UploadField
+                        label="upload"
+                        accept="image/*"
+                        testId={`site-image-upload-${slot.key}`}
+                        onUploaded={(p) => setSiteImages((s) => ({ ...s, [slot.key]: p }))}
+                      />
+                      <button
+                        type="button"
+                        className="pico-btn"
+                        onClick={() => saveSiteImage(slot.key)}
+                        disabled={!!imgSaving[slot.key]}
+                        data-testid={`site-image-save-${slot.key}`}
+                      >
+                        {imgSaving[slot.key] ? "saving..." : "save"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="space-y-3">
-            <p className="font-hand text-sm text-[var(--ink-soft)]">
-              Paste an image URL or upload a file. Saved image will appear on the about page.
-            </p>
-            <input
-              className="pico-input font-hand"
-              placeholder="image URL or storage path"
-              value={aboutImg}
-              onChange={(e) => setAboutImg(e.target.value)}
-              data-testid="about-image-input"
-            />
-            <div className="flex flex-wrap gap-2">
-              <UploadField
-                label="upload new image"
-                accept="image/*"
-                testId="about-image-upload-btn"
-                onUploaded={(p) => setAboutImg(p)}
-              />
-              <button
-                type="button"
-                className="pico-btn"
-                onClick={saveAboutImg}
-                disabled={aboutImgSaving}
-                data-testid="about-image-save-btn"
-              >
-                {aboutImgSaving ? "saving..." : "save artist image"}
-              </button>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </Section>
 

@@ -1,15 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { resolveMediaUrl } from "../ProtectedImage";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const FALLBACK_BOOKMARK =
+  "https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/twxxbarm_Untitled_Artwork.PNG";
 
 export const RibbonBookmark = () => {
   const location = useLocation();
+  const [logo, setLogo] = useState(FALLBACK_BOOKMARK);
+
+  useEffect(() => {
+    let alive = true;
+    axios.get(`${API}/settings/images`).then((r) => {
+      if (alive && r.data?.about_bookmark_path) setLogo(r.data.about_bookmark_path);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   if (location.pathname === "/" || location.pathname === "/disclaimer" || location.pathname === "/home") return null;
   return (
     <Link to="/about" className="ribbon" data-testid="ribbon-bookmark-link" aria-label="About">
       <span className="ribbon-label">about</span>
       <img
-        src="https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/1b483xlx_43b6fv8r_Untitled%20design%20%281%29.png"
+        src={resolveMediaUrl(logo)}
         alt=""
         aria-hidden="true"
         draggable={false}

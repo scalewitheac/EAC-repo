@@ -8,7 +8,7 @@ import uuid
 import logging
 import requests
 from datetime import datetime, timezone, timedelta
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import bcrypt
 import jwt
@@ -181,8 +181,11 @@ class AdminUserIn(BaseModel):
     password: str
     name: Optional[str] = ""
 
-class AboutSettingsIn(BaseModel):
-    artist_image_path: str  # storage_path OR full http(s) URL
+class SiteImagesIn(BaseModel):
+    artist_image_path: Optional[str] = None
+    hub_background_path: Optional[str] = None
+    disclaimer_button_path: Optional[str] = None
+    about_bookmark_path: Optional[str] = None
 
 # -------------------- Email helper --------------------
 def send_email(subject: str, html: str, to: Optional[str] = None) -> bool:
@@ -386,25 +389,64 @@ async def upload_file(file: UploadFile = File(...), admin: dict = Depends(get_cu
     })
     return {"id": file_id, "storage_path": result["path"], "content_type": content_type}
 
-# About-page settings
-DEFAULT_ARTIST_IMAGE = "https://images.pexels.com/photos/29861519/pexels-photo-29861519.jpeg?auto=compress&cs=tinysrgb&w=900"
+# Site image settings
+DEFAULT_SITE_IMAGES = {
+    "artist_image_path": "https://images.pexels.com/photos/29861519/pexels-photo-29861519.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "hub_background_path": "https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/df20ee9o_15187.jpg",
+    "disclaimer_button_path": "https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/43b6fv8r_Untitled%20design%20%281%29.png",
+    "about_bookmark_path": "https://customer-assets.emergentagent.com/job_creative-canvas-602/artifacts/twxxbarm_Untitled_Artwork.PNG",
+}
+
+async def _load_site_images() -> Dict[str, str]:
+    doc = await db.settings.find_one({"key": "images"}, {"_id": 0}) or {}
+    merged = dict(DEFAULT_SITE_IMAGES)
+    for k in DEFAULT_SITE_IMAGES.keys():
+        v = doc.get(k)
+        if v:
+            merged[k] = v
+    return merged
+
+@api_router.get("/settings/images")
+async def get_site_images():
+    return await _load_site_images()
+
+@api_router.put("/settings/images")
+async def update_site_images(body: SiteImagesIn, admin: dict = Depends(get_current_admin)):
+    payload = body.model_dump(exclude_none=True)
+    if not payload:
+        raise HTTPException(status_code=400, detail="no fields to update")
+    # only allow known keys, strip whitespace
+    update: Dict[str, str] = {}
+    for k in DEFAULT_SITE_IMAGES.keys():
+        if k in payload:
+            v = (payload[k] or "").strip()
+            if v:
+                update[k] = v
+    if not update:
+        raise HTTPException(status_code=400, detail="no valid fields to update")
+    update["key"] = "images"
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update["updated_by"] = admin.get("email")
+    await db.settings.update_one({"key": "images"}, {"$set": update}, upsert=True)
+    return {"ok": True, "images": await _load_site_images()}
+
+# Backwards-compat: keep old about endpoint as alias
+DEFAULT_ARTIST_IMAGE = DEFAULT_SITE_IMAGES["artist_image_path"]
 
 @api_router.get("/settings/about")
 async def get_about_settings():
-    doc = await db.settings.find_one({"key": "about"}, {"_id": 0})
-    if not doc:
-        return {"artist_image_path": DEFAULT_ARTIST_IMAGE}
-    return {"artist_image_path": doc.get("artist_image_path") or DEFAULT_ARTIST_IMAGE}
+    imgs = await _load_site_images()
+    return {"artist_image_path": imgs["artist_image_path"]}
 
 @api_router.put("/settings/about")
-async def update_about_settings(body: AboutSettingsIn, admin: dict = Depends(get_current_admin)):
+async def update_about_settings(body: SiteImagesIn, admin: dict = Depends(get_current_admin)):
     path = (body.artist_image_path or "").strip()
     if not path:
         raise HTTPException(status_code=400, detail="artist_image_path required")
     await db.settings.update_one(
-        {"key": "about"},
+        {"key": "images"},
         {"$set": {
-            "key": "about",
+            "key": "images",
             "artist_image_path": path,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": admin.get("email"),

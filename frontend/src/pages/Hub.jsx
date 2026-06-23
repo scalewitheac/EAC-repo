@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SignOutButton from "../components/SignOutButton";
+import { resolveMediaUrl } from "../components/ProtectedImage";
 import * as sfx from "../lib/sfx";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const MENU = [
   { to: "/drawings", label: "Drawings", sub: "doodles & multimedia" },
@@ -39,6 +43,15 @@ const Hub = () => {
   const [booting, setBooting] = useState(true);
   const [shell, setShell] = useState(() => localStorage.getItem("device-shell") || "mauve");
   const [muted, setMutedState] = useState(() => localStorage.getItem("device-muted") === "1");
+  const [bgImage, setBgImage] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    axios.get(`${API}/settings/images`).then((r) => {
+      if (alive && r.data?.hub_background_path) setBgImage(r.data.hub_background_path);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => { localStorage.setItem("device-shell", shell); }, [shell]);
   useEffect(() => {
@@ -88,7 +101,11 @@ const Hub = () => {
   }, [cursor]);
 
   return (
-    <div className="retro-stage" data-testid="hub-device-stage">
+    <div
+      className="retro-stage"
+      data-testid="hub-device-stage"
+      style={bgImage ? { backgroundImage: `url(${resolveMediaUrl(bgImage)})` } : undefined}
+    >
       <div className="device" data-shell={shell} data-testid="device-shell" role="region" aria-label="delined handheld console" style={{ position: "relative", zIndex: 2 }}>
         {/* Header strip */}
         <div className="device-header">
