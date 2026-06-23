@@ -27,6 +27,7 @@ db = client[os.environ['DB_NAME']]
 JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALGORITHM = "HS256"
 SITE_PASSWORD = os.environ.get('SITE_PASSWORD', 'pass')
+VISITOR_PASSWORD = os.environ.get('VISITOR_PASSWORD', '')
 ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
 ADMIN_PASSWORD = os.environ['ADMIN_PASSWORD']
 APP_NAME = os.environ.get('APP_NAME', 'delined')
@@ -219,7 +220,11 @@ async def root():
 
 @api_router.post("/site/verify-password")
 async def verify_site_password(body: SitePasswordIn):
-    if body.password == SITE_PASSWORD:
+    submitted = body.password or ""
+    valid_passwords = {SITE_PASSWORD}
+    if VISITOR_PASSWORD:
+        valid_passwords.add(VISITOR_PASSWORD)
+    if submitted in valid_passwords:
         return {"ok": True}
     raise HTTPException(status_code=401, detail="Incorrect password")
 
