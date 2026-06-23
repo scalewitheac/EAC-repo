@@ -43,8 +43,10 @@ const tone = (freq, duration = 0.08, type = "square", gainPeak = 0.06) => {
     gain.connect(c.destination);
     osc.start();
     osc.stop(c.currentTime + duration + 0.02);
-  } catch {
-    /* swallow */
+  } catch (e) {
+    // Audio nodes can fail when the page is hidden or context is suspended.
+    // Logged at warn level so the page does not crash but the failure is visible.
+    if (typeof console !== "undefined") console.warn("sfx tone failed:", e);
   }
 };
 

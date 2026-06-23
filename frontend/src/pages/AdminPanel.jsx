@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -86,7 +86,7 @@ const AdminPanel = () => {
   });
   const [textSaving, setTextSaving] = useState({});
 
-  const loadAll = async () => {
+  const loadAll = useCallback(async () => {
     const [mr, dr, wr, vr, sr, tr] = await Promise.all([
       api.get(`/messages?all=true`),
       api.get(`/drawings`),
@@ -107,9 +107,12 @@ const AdminPanel = () => {
       disclaimer: { ...tr.data?.disclaimer },
       contact: { ...tr.data?.contact },
     });
-  };
+    // api is recreated each render but its identity does not affect the
+    // logical behaviour of this loader, so it is intentionally omitted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  useEffect(() => { if (token) loadAll(); /* eslint-disable-next-line */ }, [token]);
+  useEffect(() => { if (token) loadAll(); }, [token, loadAll]);
 
   if (!token) return <Navigate to="/admin/login" replace />;
 

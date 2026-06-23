@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -58,11 +58,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{
+    <AuthContext.Provider value={useMemo(() => ({
       siteUnlocked, verifySitePassword,
       disclaimerAccepted, acceptDisclaimer,
       token, admin, login, logout, signOut, API,
-    }}>
+    }), [siteUnlocked, disclaimerAccepted, token, admin])}>
       {children}
     </AuthContext.Provider>
   );

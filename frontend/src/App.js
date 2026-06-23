@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 
@@ -58,6 +58,7 @@ const Layout = () => {
 };
 
 function AppShell() {
+  const toastOptions = useMemo(() => ({ className: "font-hand" }), []);
   return (
     <BrowserRouter>
       <Layout />
@@ -76,7 +77,7 @@ function AppShell() {
         <Route path="/admin" element={<RequireSiteAccess><AdminPanel /></RequireSiteAccess>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Toaster position="bottom-center" toastOptions={{ className: "font-hand" }} />
+      <Toaster position="bottom-center" toastOptions={toastOptions} />
     </BrowserRouter>
   );
 }

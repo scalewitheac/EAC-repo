@@ -83,7 +83,7 @@ class TestMessages:
         items = r.json()
         assert isinstance(items, list)
         for it in items:
-            assert it.get("approved") is True
+            assert it.get("approved") == True
             assert "_id" not in it
 
     def test_list_all_requires_admin(self, api_client):
@@ -107,7 +107,7 @@ class TestMessages:
         r = api_client.post(f"{BASE_URL}/api/messages", json=payload)
         assert r.status_code == 200
         m = r.json()
-        assert m["approved"] is False
+        assert m["approved"] == False
         assert m["name"] == "TEST_tester"
         assert "_id" not in m
         msg_id = m["id"]
