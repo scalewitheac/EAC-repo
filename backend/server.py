@@ -180,6 +180,9 @@ class AdminUserIn(BaseModel):
     password: str
     name: Optional[str] = ""
 
+class AboutSettingsIn(BaseModel):
+    artist_image_path: str  # storage_path OR full http(s) URL
+
 # -------------------- Email helper --------------------
 def send_email(subject: str, html: str, to: Optional[str] = None) -> bool:
     """Send via Resend HTTP API. Silently returns False if not configured."""
@@ -377,6 +380,33 @@ async def upload_file(file: UploadFile = File(...), admin: dict = Depends(get_cu
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
     return {"id": file_id, "storage_path": result["path"], "content_type": content_type}
+
+# About-page settings
+DEFAULT_ARTIST_IMAGE = "https://images.pexels.com/photos/29861519/pexels-photo-29861519.jpeg?auto=compress&cs=tinysrgb&w=900"
+
+@api_router.get("/settings/about")
+async def get_about_settings():
+    doc = await db.settings.find_one({"key": "about"}, {"_id": 0})
+    if not doc:
+        return {"artist_image_path": DEFAULT_ARTIST_IMAGE}
+    return {"artist_image_path": doc.get("artist_image_path") or DEFAULT_ARTIST_IMAGE}
+
+@api_router.put("/settings/about")
+async def update_about_settings(body: AboutSettingsIn, admin: dict = Depends(get_current_admin)):
+    path = (body.artist_image_path or "").strip()
+    if not path:
+        raise HTTPException(status_code=400, detail="artist_image_path required")
+    await db.settings.update_one(
+        {"key": "about"},
+        {"$set": {
+            "key": "about",
+            "artist_image_path": path,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": admin.get("email"),
+        }},
+        upsert=True,
+    )
+    return {"ok": True, "artist_image_path": path}
 
 # File serving — public (we already gate the whole site with the password screen)
 @api_router.get("/files/{path:path}")

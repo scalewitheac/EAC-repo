@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { NotebookFrame } from "../components/notebook/NotebookShell";
 import ProtectedImage from "../components/ProtectedImage";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const FALLBACK_ARTIST_IMG =
+  "https://images.pexels.com/photos/29861519/pexels-photo-29861519.jpeg?auto=compress&cs=tinysrgb&w=900";
 
 const SOCIALS = [
   { label: "instagram", url: "" },
@@ -11,6 +16,19 @@ const SOCIALS = [
 ];
 
 const About = () => {
+  const [artistImg, setArtistImg] = useState(FALLBACK_ARTIST_IMG);
+
+  useEffect(() => {
+    let alive = true;
+    axios
+      .get(`${API}/settings/about`)
+      .then((r) => {
+        if (alive && r.data?.artist_image_path) setArtistImg(r.data.artist_image_path);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   const leftPage = (
     <div className="relative h-full">
       <h2 className="font-marker text-4xl text-[var(--ink-color)] mb-3 tilt-l2">about</h2>
@@ -18,7 +36,7 @@ const About = () => {
         <span className="tape tape-tl" />
         <span className="tape tape-tr" />
         <ProtectedImage
-          src="https://images.pexels.com/photos/29861519/pexels-photo-29861519.jpeg?auto=compress&cs=tinysrgb&w=900"
+          src={artistImg}
           alt="artist"
           className="w-72 h-80 object-cover"
         />

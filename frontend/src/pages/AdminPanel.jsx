@@ -3,6 +3,7 @@ import axios from "axios";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { NotebookFrame } from "../components/notebook/NotebookShell";
+import { resolveMediaUrl } from "../components/ProtectedImage";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -64,15 +65,19 @@ const AdminPanel = () => {
   const [d, setD] = useState({ title: "", date: "", image_path: "", tags: "", description: "" });
   const [w, setW] = useState({ title: "", date: "", content: "", tags: "" });
   const [v, setV] = useState({ title: "", date: "", external_url: "", video_path: "", thumbnail_path: "", tags: "", description: "" });
+  const [aboutImg, setAboutImg] = useState("");
+  const [aboutImgSaving, setAboutImgSaving] = useState(false);
 
   const loadAll = async () => {
-    const [mr, dr, wr, vr] = await Promise.all([
+    const [mr, dr, wr, vr, sr] = await Promise.all([
       api.get(`/messages?all=true`),
       api.get(`/drawings`),
       api.get(`/writings`),
       api.get(`/videos`),
+      api.get(`/settings/about`),
     ]);
     setMessages(mr.data); setDrawings(dr.data); setWritings(wr.data); setVideos(vr.data);
+    setAboutImg(sr.data?.artist_image_path || "");
   };
 
   useEffect(() => { if (token) loadAll(); /* eslint-disable-next-line */ }, [token]);
@@ -113,6 +118,21 @@ const AdminPanel = () => {
     loadAll();
   };
 
+  const saveAboutImg = async () => {
+    const path = (aboutImg || "").trim();
+    if (!path) { toast("paste a url or upload an image first"); return; }
+    setAboutImgSaving(true);
+    try {
+      await api.put(`/settings/about`, { artist_image_path: path });
+      toast("artist image updated");
+      loadAll();
+    } catch {
+      toast("update failed");
+    } finally {
+      setAboutImgSaving(false);
+    }
+  };
+
   const page = (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -121,6 +141,60 @@ const AdminPanel = () => {
           {admin?.email}
         </span>
       </div>
+
+      <Section title="About — Artist Image">
+        <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-4 items-start" data-testid="about-image-section">
+          <div
+            className="relative bg-[var(--bg-color)] p-2 inline-block tilt-l shadow-md"
+            style={{ boxShadow: "2px 4px 10px var(--shadow)" }}
+          >
+            <span className="tape tape-tl" />
+            <span className="tape tape-tr" />
+            {aboutImg ? (
+              <img
+                src={resolveMediaUrl(aboutImg)}
+                alt="current artist"
+                className="w-36 h-44 object-cover"
+                draggable={false}
+                data-testid="about-image-preview"
+              />
+            ) : (
+              <div className="w-36 h-44 flex items-center justify-center font-pixel text-xs text-[var(--ink-soft)] uppercase tracking-widest">
+                no image
+              </div>
+            )}
+          </div>
+          <div className="space-y-3">
+            <p className="font-hand text-sm text-[var(--ink-soft)]">
+              Paste an image URL or upload a file. Saved image will appear on the about page.
+            </p>
+            <input
+              className="pico-input font-hand"
+              placeholder="image URL or storage path"
+              value={aboutImg}
+              onChange={(e) => setAboutImg(e.target.value)}
+              data-testid="about-image-input"
+            />
+            <div className="flex flex-wrap gap-2">
+              <UploadField
+                label="upload new image"
+                accept="image/*"
+                testId="about-image-upload-btn"
+                onUploaded={(p) => setAboutImg(p)}
+              />
+              <button
+                type="button"
+                className="pico-btn"
+                onClick={saveAboutImg}
+                disabled={aboutImgSaving}
+                data-testid="about-image-save-btn"
+              >
+                {aboutImgSaving ? "saving..." : "save artist image"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Section>
 
       <Section title="Messages">
         <div className="space-y-3 max-h-[40vh] overflow-y-auto notebook-scroll pr-2">
