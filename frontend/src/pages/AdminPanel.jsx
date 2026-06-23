@@ -73,13 +73,27 @@ const AdminPanel = () => {
   });
   const [imgSaving, setImgSaving] = useState({});
 
+  const [siteTexts, setSiteTexts] = useState({
+    about: {
+      section_label: "", heading: "", bio_paragraphs: [], signature: "",
+      socials_label: "", content_warning_label: "", content_warning_text: "",
+    },
+    disclaimer: {
+      heading: "", body_paragraphs: [], aka_line: "",
+      warning_lines: [], ps_note: "",
+    },
+    contact: { random_questions: [] },
+  });
+  const [textSaving, setTextSaving] = useState({});
+
   const loadAll = async () => {
-    const [mr, dr, wr, vr, sr] = await Promise.all([
+    const [mr, dr, wr, vr, sr, tr] = await Promise.all([
       api.get(`/messages?all=true`),
       api.get(`/drawings`),
       api.get(`/writings`),
       api.get(`/videos`),
       api.get(`/settings/images`),
+      api.get(`/settings/texts`),
     ]);
     setMessages(mr.data); setDrawings(dr.data); setWritings(wr.data); setVideos(vr.data);
     setSiteImages({
@@ -87,6 +101,11 @@ const AdminPanel = () => {
       hub_background_path: sr.data?.hub_background_path || "",
       disclaimer_button_path: sr.data?.disclaimer_button_path || "",
       about_bookmark_path: sr.data?.about_bookmark_path || "",
+    });
+    setSiteTexts({
+      about: { ...tr.data?.about },
+      disclaimer: { ...tr.data?.disclaimer },
+      contact: { ...tr.data?.contact },
     });
   };
 
@@ -142,6 +161,39 @@ const AdminPanel = () => {
       setImgSaving((s) => ({ ...s, [key]: false }));
     }
   };
+
+  const saveTextGroup = async (group) => {
+    setTextSaving((s) => ({ ...s, [group]: true }));
+    try {
+      await api.put(`/settings/texts`, { [group]: siteTexts[group] });
+      toast(`${group} text saved`);
+      loadAll();
+    } catch {
+      toast("save failed");
+    } finally {
+      setTextSaving((s) => ({ ...s, [group]: false }));
+    }
+  };
+
+  const updateText = (group, key, value) =>
+    setSiteTexts((s) => ({ ...s, [group]: { ...s[group], [key]: value } }));
+  const updateTextList = (group, key, idx, value) =>
+    setSiteTexts((s) => {
+      const list = [...(s[group][key] || [])];
+      list[idx] = value;
+      return { ...s, [group]: { ...s[group], [key]: list } };
+    });
+  const addTextListItem = (group, key) =>
+    setSiteTexts((s) => ({
+      ...s,
+      [group]: { ...s[group], [key]: [...(s[group][key] || []), ""] },
+    }));
+  const removeTextListItem = (group, key, idx) =>
+    setSiteTexts((s) => {
+      const list = [...(s[group][key] || [])];
+      list.splice(idx, 1);
+      return { ...s, [group]: { ...s[group], [key]: list } };
+    });
 
   const page = (
     <div>
@@ -216,6 +268,180 @@ const AdminPanel = () => {
               </div>
             );
           })}
+        </div>
+      </Section>
+
+      <Section title="Site Text Content">
+        <p className="font-hand text-sm text-[var(--ink-soft)] mb-4" data-testid="site-text-section">
+          Master controls for the text content on each page. Edit, add or remove paragraphs/questions then click save for that section.
+        </p>
+
+        {/* About */}
+        <div className="border border-[var(--ink-soft)]/30 rounded-md p-3 mb-5" data-testid="text-group-about">
+          <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-color)] mb-3">about page</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">section label (small caps)</span>
+              <input className="pico-input font-hand w-full" data-testid="about-text-section_label"
+                value={siteTexts.about.section_label || ""}
+                onChange={(e) => updateText("about", "section_label", e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">heading</span>
+              <input className="pico-input font-hand w-full" data-testid="about-text-heading"
+                value={siteTexts.about.heading || ""}
+                onChange={(e) => updateText("about", "heading", e.target.value)} />
+            </label>
+          </div>
+
+          <div className="mt-3">
+            <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">bio paragraphs</span>
+            {(siteTexts.about.bio_paragraphs || []).map((p, i) => (
+              <div key={i} className="flex gap-2 mt-2" data-testid={`about-bio-row-${i}`}>
+                <textarea className="pico-textarea font-hand flex-1" rows={2}
+                  value={p}
+                  onChange={(e) => updateTextList("about", "bio_paragraphs", i, e.target.value)} />
+                <button type="button" className="pico-btn text-xs h-fit"
+                  onClick={() => removeTextListItem("about", "bio_paragraphs", i)}
+                  data-testid={`about-bio-remove-${i}`}>×</button>
+              </div>
+            ))}
+            <button type="button" className="pico-btn text-xs mt-2"
+              onClick={() => addTextListItem("about", "bio_paragraphs")}
+              data-testid="about-bio-add">+ add paragraph</button>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">signature</span>
+              <input className="pico-input font-hand w-full" data-testid="about-text-signature"
+                value={siteTexts.about.signature || ""}
+                onChange={(e) => updateText("about", "signature", e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">socials heading</span>
+              <input className="pico-input font-hand w-full" data-testid="about-text-socials_label"
+                value={siteTexts.about.socials_label || ""}
+                onChange={(e) => updateText("about", "socials_label", e.target.value)} />
+            </label>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label className="block">
+              <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">content warning label</span>
+              <input className="pico-input font-hand w-full" data-testid="about-text-cw_label"
+                value={siteTexts.about.content_warning_label || ""}
+                onChange={(e) => updateText("about", "content_warning_label", e.target.value)} />
+            </label>
+            <label className="block md:col-span-2">
+              <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">content warning text</span>
+              <textarea className="pico-textarea font-hand w-full" rows={2} data-testid="about-text-cw_text"
+                value={siteTexts.about.content_warning_text || ""}
+                onChange={(e) => updateText("about", "content_warning_text", e.target.value)} />
+            </label>
+          </div>
+
+          <button type="button" className="pico-btn mt-4"
+            onClick={() => saveTextGroup("about")}
+            disabled={!!textSaving.about}
+            data-testid="about-text-save">
+            {textSaving.about ? "saving..." : "save about text"}
+          </button>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="border border-[var(--ink-soft)]/30 rounded-md p-3 mb-5" data-testid="text-group-disclaimer">
+          <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-color)] mb-3">disclaimer page</div>
+
+          <label className="block">
+            <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">heading</span>
+            <input className="pico-input font-hand w-full" data-testid="disclaimer-text-heading"
+              value={siteTexts.disclaimer.heading || ""}
+              onChange={(e) => updateText("disclaimer", "heading", e.target.value)} />
+          </label>
+
+          <div className="mt-3">
+            <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">body paragraphs</span>
+            {(siteTexts.disclaimer.body_paragraphs || []).map((p, i) => (
+              <div key={i} className="flex gap-2 mt-2" data-testid={`disclaimer-body-row-${i}`}>
+                <textarea className="pico-textarea font-hand flex-1" rows={3}
+                  value={p}
+                  onChange={(e) => updateTextList("disclaimer", "body_paragraphs", i, e.target.value)} />
+                <button type="button" className="pico-btn text-xs h-fit"
+                  onClick={() => removeTextListItem("disclaimer", "body_paragraphs", i)}
+                  data-testid={`disclaimer-body-remove-${i}`}>×</button>
+              </div>
+            ))}
+            <button type="button" className="pico-btn text-xs mt-2"
+              onClick={() => addTextListItem("disclaimer", "body_paragraphs")}
+              data-testid="disclaimer-body-add">+ add paragraph</button>
+          </div>
+
+          <label className="block mt-3">
+            <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">a.k.a line</span>
+            <input className="pico-input font-hand w-full" data-testid="disclaimer-text-aka_line"
+              value={siteTexts.disclaimer.aka_line || ""}
+              onChange={(e) => updateText("disclaimer", "aka_line", e.target.value)} />
+          </label>
+
+          <div className="mt-3">
+            <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">warning lines (bold, centered)</span>
+            {(siteTexts.disclaimer.warning_lines || []).map((p, i) => (
+              <div key={i} className="flex gap-2 mt-2" data-testid={`disclaimer-warn-row-${i}`}>
+                <input className="pico-input font-hand flex-1"
+                  value={p}
+                  onChange={(e) => updateTextList("disclaimer", "warning_lines", i, e.target.value)} />
+                <button type="button" className="pico-btn text-xs h-fit"
+                  onClick={() => removeTextListItem("disclaimer", "warning_lines", i)}
+                  data-testid={`disclaimer-warn-remove-${i}`}>×</button>
+              </div>
+            ))}
+            <button type="button" className="pico-btn text-xs mt-2"
+              onClick={() => addTextListItem("disclaimer", "warning_lines")}
+              data-testid="disclaimer-warn-add">+ add line</button>
+          </div>
+
+          <label className="block mt-3">
+            <span className="font-pixel uppercase text-[10px] text-[var(--ink-soft)]">P.S. note</span>
+            <textarea className="pico-textarea font-hand w-full" rows={3} data-testid="disclaimer-text-ps_note"
+              value={siteTexts.disclaimer.ps_note || ""}
+              onChange={(e) => updateText("disclaimer", "ps_note", e.target.value)} />
+          </label>
+
+          <button type="button" className="pico-btn mt-4"
+            onClick={() => saveTextGroup("disclaimer")}
+            disabled={!!textSaving.disclaimer}
+            data-testid="disclaimer-text-save">
+            {textSaving.disclaimer ? "saving..." : "save disclaimer text"}
+          </button>
+        </div>
+
+        {/* Contact / Message Board random questions */}
+        <div className="border border-[var(--ink-soft)]/30 rounded-md p-3" data-testid="text-group-contact">
+          <div className="font-pixel uppercase text-xs tracking-widest text-[var(--ink-color)] mb-3">message board · random question pool</div>
+          <p className="font-hand text-sm text-[var(--ink-soft)] mb-2">
+            One of these is picked at random each time a visitor opens the message board.
+          </p>
+          {(siteTexts.contact.random_questions || []).map((p, i) => (
+            <div key={i} className="flex gap-2 mt-2" data-testid={`contact-q-row-${i}`}>
+              <input className="pico-input font-hand flex-1"
+                value={p}
+                onChange={(e) => updateTextList("contact", "random_questions", i, e.target.value)} />
+              <button type="button" className="pico-btn text-xs h-fit"
+                onClick={() => removeTextListItem("contact", "random_questions", i)}
+                data-testid={`contact-q-remove-${i}`}>×</button>
+            </div>
+          ))}
+          <button type="button" className="pico-btn text-xs mt-2"
+            onClick={() => addTextListItem("contact", "random_questions")}
+            data-testid="contact-q-add">+ add question</button>
+
+          <button type="button" className="pico-btn mt-4 ml-2"
+            onClick={() => saveTextGroup("contact")}
+            disabled={!!textSaving.contact}
+            data-testid="contact-text-save">
+            {textSaving.contact ? "saving..." : "save questions"}
+          </button>
         </div>
       </Section>
 

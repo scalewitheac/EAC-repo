@@ -8,7 +8,7 @@ import uuid
 import logging
 import requests
 from datetime import datetime, timezone, timedelta
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 import bcrypt
 import jwt
@@ -186,6 +186,11 @@ class SiteImagesIn(BaseModel):
     hub_background_path: Optional[str] = None
     disclaimer_button_path: Optional[str] = None
     about_bookmark_path: Optional[str] = None
+
+class SiteTextsIn(BaseModel):
+    about: Optional[Dict[str, Any]] = None
+    disclaimer: Optional[Dict[str, Any]] = None
+    contact: Optional[Dict[str, Any]] = None
 
 # -------------------- Email helper --------------------
 def send_email(subject: str, html: str, to: Optional[str] = None) -> bool:
@@ -432,6 +437,96 @@ async def update_site_images(body: SiteImagesIn, admin: dict = Depends(get_curre
 
 # Backwards-compat: keep old about endpoint as alias
 DEFAULT_ARTIST_IMAGE = DEFAULT_SITE_IMAGES["artist_image_path"]
+
+# Site text content (about / disclaimer / contact)
+DEFAULT_SITE_TEXTS: Dict[str, Any] = {
+    "about": {
+        "section_label": "whoami",
+        "heading": "a strange diary keeper",
+        "bio_paragraphs": [
+            "hi. i draw, write, and film small things. this site is a collected mess of those things — a sandbox more than a gallery.",
+            "most entries are made in margins, on receipts, between classes, after sleep. i'd rather show the doodle than the polished version.",
+            "if you'd like to leave a note, the contact page has a message board. messages are read before being shown.",
+        ],
+        "signature": "— The author",
+        "socials_label": "other notebooks",
+        "content_warning_label": "content warning",
+        "content_warning_text": "Asking questions while someone is drawing may be distracting. Especially if the questions are consistent, repetitive, and are more critical than inquisitive.",
+    },
+    "disclaimer": {
+        "heading": "Disclaimer",
+        "body_paragraphs": [
+            "That this site is simply meant to be a personal creative art/writing/media sandbox and overall gallery for its owner.",
+            "Consider it another random personal blog on this World Wide Web — with its true meanings and worth being defined only by the one who owns it and likewise decided to share it.",
+            "As such — the content within can and WILL change based on the owner's collective whims and focus regarding their interests. Life changes — so does a persons attention and focus on occasion. Whatever you see here isn't meant to be restricted by your own views and interpretations. Or anyone else's.",
+            "So while the owner cannot physically stop you from viewing this blog, nor can they force how you think or tell you what to do after you browse the contents within — try to remember that this blog may hold things not suitable for you…or an audience that is younger or more sensitive.",
+        ],
+        "aka_line": "a.k.a…",
+        "warning_lines": [
+            "Warning: This blog is 18+. Viewer Discretion is Advised",
+            "This blog, isn't a babysitter.",
+        ],
+        "ps_note": "P.S. — If and when you see any spelling or grammar errors, pretend this is an actual notebook. And remember human error is a thing that applies here. Along with sleep deprivation. Thanks.",
+    },
+    "contact": {
+        "random_questions": [
+            "If you were a sticky note, what color would you be and what would you say?",
+            "What's the weirdest dream you remember and never told anyone about?",
+            "If your handwriting had a personality, how would you describe it?",
+            "What's a song you'd play on loop while doodling at 3am?",
+            "If this blog were a room, what one object would you leave in it?",
+            "What's an opinion you hold that you secretly think no one else does?",
+            "Describe yourself using only three random objects from your desk.",
+            "What's the last small thing that made you genuinely smile?",
+            "If you could leave one footnote in someone else's diary, what would it say?",
+            "What's the smell of your favorite memory?",
+            "If your week had a soundtrack title, what would it be?",
+            "What's a secret hobby you'd start if no one was watching?",
+        ],
+    },
+}
+
+def _deep_merge(defaults: Dict[str, Any], stored: Dict[str, Any]) -> Dict[str, Any]:
+    out: Dict[str, Any] = {}
+    for k, v in defaults.items():
+        if isinstance(v, dict):
+            out[k] = _deep_merge(v, (stored or {}).get(k) or {})
+        else:
+            stored_val = (stored or {}).get(k)
+            out[k] = stored_val if stored_val not in (None, "") else v
+    # carry any extra keys from stored (so admin can add custom fields safely)
+    for k, v in (stored or {}).items():
+        if k not in out:
+            out[k] = v
+    return out
+
+async def _load_site_texts() -> Dict[str, Any]:
+    doc = await db.settings.find_one({"key": "texts"}, {"_id": 0}) or {}
+    stored = doc.get("data") or {}
+    return _deep_merge(DEFAULT_SITE_TEXTS, stored)
+
+@api_router.get("/settings/texts")
+async def get_site_texts():
+    return await _load_site_texts()
+
+@api_router.put("/settings/texts")
+async def update_site_texts(body: SiteTextsIn, admin: dict = Depends(get_current_admin)):
+    payload = body.model_dump(exclude_none=True)
+    if not payload:
+        raise HTTPException(status_code=400, detail="no fields to update")
+    existing = await db.settings.find_one({"key": "texts"}, {"_id": 0}) or {}
+    merged_data = _deep_merge(existing.get("data") or {}, payload)
+    await db.settings.update_one(
+        {"key": "texts"},
+        {"$set": {
+            "key": "texts",
+            "data": merged_data,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": admin.get("email"),
+        }},
+        upsert=True,
+    )
+    return {"ok": True, "texts": await _load_site_texts()}
 
 @api_router.get("/settings/about")
 async def get_about_settings():

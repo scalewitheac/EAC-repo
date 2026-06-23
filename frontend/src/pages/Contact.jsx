@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const RANDOM_QUESTIONS = [
+const DEFAULT_RANDOM_QUESTIONS = [
   "If you were a sticky note, what color would you be and what would you say?",
   "What's the weirdest dream you remember and never told anyone about?",
   "If your handwriting had a personality, how would you describe it?",
@@ -22,9 +22,10 @@ const RANDOM_QUESTIONS = [
 
 const Contact = () => {
   const [messages, setMessages] = useState([]);
+  const [questionPool, setQuestionPool] = useState(DEFAULT_RANDOM_QUESTIONS);
   const randomQuestion = useMemo(
-    () => RANDOM_QUESTIONS[Math.floor(Math.random() * RANDOM_QUESTIONS.length)],
-    []
+    () => questionPool[Math.floor(Math.random() * questionPool.length)],
+    [questionPool]
   );
   const [form, setForm] = useState({
     name: "",
@@ -38,7 +39,13 @@ const Contact = () => {
 
   const loadMessages = () => axios.get(`${API}/messages`).then((r) => setMessages(r.data));
 
-  useEffect(() => { loadMessages(); }, []);
+  useEffect(() => {
+    loadMessages();
+    axios.get(`${API}/settings/texts`).then((r) => {
+      const pool = r.data?.contact?.random_questions;
+      if (Array.isArray(pool) && pool.length > 0) setQuestionPool(pool);
+    }).catch(() => {});
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
